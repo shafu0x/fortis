@@ -1,6 +1,10 @@
 [profile.default]
+script = "script"
+solc = "0.8.26"
 src = "src"
-out = "out"
-libs = ["lib"]
+test = "test"
+libs = ["dependencies"]
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+[dependencies]
+forge-std = { version = "1.9.4", url = "https://soldeer-revisions.s3.amazonaws.com/forge-std/1_9_4_25-10-2024_14:36:59_forge-std-1.9.zip" }
+solmate = "6.8.0"
