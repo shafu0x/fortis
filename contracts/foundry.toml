@@ -4,6 +4,10 @@ solc = "0.8.26"
 src = "src"
 test = "test"
 libs = ["dependencies"]
+chain_id = 31337
+
+[profile.optimism]
+chain_id  = 10
 
 [dependencies]
 forge-std = { version = "1.9.4", url = "https://soldeer-revisions.s3.amazonaws.com/forge-std/1_9_4_25-10-2024_14:36:59_forge-std-1.9.zip" }
