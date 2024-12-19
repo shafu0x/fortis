@@ -5,6 +5,6 @@ import {Test} from "forge-std/src/Test.sol";
 
 contract Check is Test {
     function test_pass() external pure returns (bool) {
-        assertEq(true, true);
+        assertEq(true, false);
     }
 }
