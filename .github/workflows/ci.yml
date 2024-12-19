@@ -12,12 +12,9 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v2
 
-      - name: Install Foundry
-        run: |
-          curl -L https://foundry.paradigm.xyz | bash
-          source ~/.bashrc
-          foundryup
+      - name: "Install Foundry"
+        uses: "foundry-rs/foundry-toolchain@v1"
 
-      - name: Run Forge Tests in contracts directory
+      - name: Run the tests
         run: forge test
         working-directory: ./contracts
