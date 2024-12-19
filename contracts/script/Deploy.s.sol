@@ -36,6 +36,8 @@ contract Deploy is Script, Parameters {
     function run() public returns (FUSD, Manager) {
         setUp();
 
+        vm.startBroadcast(); // ----------------------
+
         FUSD    fUSD    = new FUSD();
         Manager manager = new Manager(
             fUSD,
@@ -44,6 +46,8 @@ contract Deploy is Script, Parameters {
         );
 
         fUSD.transferOwnership(address(manager));
+
+        vm.stopBroadcast(); // ----------------------------
 
         return (
             fUSD,
