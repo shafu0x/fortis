@@ -1,2 +1,2 @@
 forge-std/=dependencies/forge-std-1.9.4/
-solmate/=dependencies/solmate-6.8.0/
+solady/=dependencies/solady-0.0.285/

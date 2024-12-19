@@ -7,4 +7,4 @@ libs = ["dependencies"]
 
 [dependencies]
 forge-std = { version = "1.9.4", url = "https://soldeer-revisions.s3.amazonaws.com/forge-std/1_9_4_25-10-2024_14:36:59_forge-std-1.9.zip" }
-solmate = "6.8.0"
+solady = "0.0.285"
