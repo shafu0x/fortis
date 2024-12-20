@@ -16,5 +16,5 @@ jobs:
         uses: "foundry-rs/foundry-toolchain@v1"
 
       - name: Run the tests
-        run: forge test
+        run: forge test -vv
         working-directory: ./contracts

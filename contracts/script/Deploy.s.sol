@@ -7,13 +7,15 @@ import {ERC20} from "solady/src/tokens/ERC20.sol";
 import {FUSD}        from "../src/FUSD.sol";
 import {Manager}     from "../src/Manager.sol";
 import {IOracle}     from "../interfaces/IOracle.sol";
+import {Batcher}     from "../src/Batcher.sol";
 import {Parameters}  from "../Parameters.sol";
-import {WstETH_Mock} from "../mocks/WstEthMock.sol";
-import {Oracle_Mock} from "../mocks/OracleMock.sol";
+import {WstETH_Mock} from "../mocks/WstEth_Mock.sol";
+import {Oracle_Mock} from "../mocks/Oracle_Mock.sol";
 
 contract Deploy is Script, Parameters {
     ERC20   wsteth;
     IOracle oracle;
+    Batcher batcher;
 
     function setUp() public {
         uint chainId = block.chainid;
@@ -33,7 +35,7 @@ contract Deploy is Script, Parameters {
         }
     }
 
-    function run() public returns (FUSD, Manager) {
+    function run() public returns (FUSD, Manager, Batcher) {
         setUp();
 
         vm.startBroadcast(); // ----------------------
@@ -47,11 +49,14 @@ contract Deploy is Script, Parameters {
 
         fUSD.transferOwnership(address(manager));
 
+        batcher = new Batcher(manager);
+
         vm.stopBroadcast(); // ----------------------------
 
         return (
             fUSD,
-            manager
+            manager,
+            batcher
         );
     }
 }
