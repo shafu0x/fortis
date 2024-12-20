@@ -45,8 +45,6 @@ contract Manager {
             )
         );
 
-        console.log(address(this));
-
         fusd   = _fusd;
         wstETH = _wstETH;
         oracle = _oracle;
