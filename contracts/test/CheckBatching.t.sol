@@ -3,26 +3,18 @@ pragma solidity =0.8.26;
 
 import {Base_Test} from "./BaseTest.t.sol";
 import "forge-std/src/Test.sol";
-import {Action} from "../src/Manager.sol";
 
 contract Batching_Test is Base_Test {
     function test_batching() external {
         console.log("fUSD:", address(fUSD));
 
-        // Action[] memory actions = new Action[](2);
-        // actions[0] = Action({actionType: 0, amount: 100});
-        // actions[1] = Action({actionType: 1, amount: 50});
-
-        // manager.executeBatch(
-        //     0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F,
-        //     actions,
-        //     0,
-        //     1734697044, // 1 hour from now
-        //     27,
-        //     0xf0e4b2a31be5592e661bcd856698c3fa825eb393e57bf948e790c59b8f935126,
-        //     0x413aea272b303ffd73e91cea9758243af347dc937e52e0e7872eeab79e11c566
-        // );
-
-        batcher.depositAndWithdraw(address(0), 1e18);
+        batcher.depositAndWithdraw(
+            0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F,
+            1e18,
+            1734714403,
+            27,
+            0x44a58218751fa40a71ace3fca1a9c25b719e807b5f0aafaaeb608a37c7840d39,
+            0x34fdc6967c776567d84cb63b54beb8d36e194d5db34ee20c31ffd8436417de3d
+        );
     }
 }
