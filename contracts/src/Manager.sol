@@ -13,6 +13,7 @@ contract Manager {
 
     mapping(address => uint256) public nonces;
     mapping(address => bool)    public unlocked;
+    mapping(address => address) public delegates;
 
     FUSD    public immutable fusd;
     ERC20   public immutable wstETH;
@@ -74,6 +75,7 @@ contract Manager {
 
     function unlock(
         address user,
+        address delegate,
         uint256 deadline,
         uint8 v,
         bytes32 r,
@@ -100,10 +102,16 @@ contract Manager {
 
         nonces[user]++;
 
-        unlocked[user] = true;
+        unlocked [user] = true;
+        delegates[user] = delegate;
     }
 
     function lock(address user) external {
-        unlocked[user] = false;
+        unlocked [user] = false;
+        delegates[user] = address(0);
+    }
+
+    function isUnlocked(address user) external view returns (bool) {
+        return unlocked[msg.sender] && delegates[msg.sender] == user;
     }
 }
