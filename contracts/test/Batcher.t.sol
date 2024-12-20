@@ -11,6 +11,8 @@ contract Batching_Test is Base_Test {
         bytes32 r;
         bytes32 s;
 
+        console.log(block.chainid);
+
         if (block.chainid == 10) {
             deadline = 1734714403;
             v = 27;
