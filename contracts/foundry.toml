@@ -5,6 +5,9 @@ src = "src"
 test = "test"
 libs = ["dependencies"]
 chain_id = 31337
+
+[profile.anvil]
+chain_id = 31337
 eth_rpc_url = "http://localhost:8545"
 
 [profile.optimism]
