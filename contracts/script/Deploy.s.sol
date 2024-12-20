@@ -9,8 +9,8 @@ import {Manager}     from "../src/Manager.sol";
 import {IOracle}     from "../interfaces/IOracle.sol";
 import {Batcher}     from "../src/Batcher.sol";
 import {Parameters}  from "../Parameters.sol";
-import {WstETH_Mock} from "../mocks/WstEthMock.sol";
-import {Oracle_Mock} from "../mocks/OracleMock.sol";
+import {WstETH_Mock} from "../mocks/WstEth_Mock.sol";
+import {Oracle_Mock} from "../mocks/Oracle_Mock.sol";
 
 contract Deploy is Script, Parameters {
     ERC20   wsteth;
