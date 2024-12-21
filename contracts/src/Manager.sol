@@ -108,6 +108,7 @@ contract Manager is ERC4626 {
     }
 
     function _withdraw(uint assets, uint shares, address owner, address receiver) internal {
+        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("UNSUFFICIENT_COLLATERAL");
         _burn(owner, shares);
         asset.safeTransfer(receiver, assets);
 
