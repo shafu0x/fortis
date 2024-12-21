@@ -23,7 +23,7 @@ contract Manager {
 
     bytes32 public DOMAIN_SEPARATOR;
     bytes32 public constant UNLOCK_TYPEHASH = keccak256(
-        "Unlock(address user,uint256 nonce,uint256 deadline)"
+        "Unlock(address user,uint256 nonce,uint256 deadline,address delegate)"
     );
 
     constructor(
@@ -79,6 +79,7 @@ contract Manager {
         bytes32 r,
         bytes32 s
     ) external {
+        require(delegate == msg.sender);
         require(block.timestamp <= deadline, "Signature expired");
 
         bytes32 structHash = keccak256(
@@ -86,7 +87,8 @@ contract Manager {
                 UNLOCK_TYPEHASH,
                 user,
                 nonces[user],  // Prevent replay attacks
-                deadline
+                deadline,
+                delegate
             )
         );
 

@@ -9,6 +9,7 @@ contract Batcher {
 
     constructor(Manager _manager) {
         manager = _manager;
+        console.log("XXX", address(this));
     }
 
     function depositAndWithdraw(

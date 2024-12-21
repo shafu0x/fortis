@@ -22,10 +22,10 @@ contract Batching_Test is Base_Test {
             r = 0x44a58218751fa40a71ace3fca1a9c25b719e807b5f0aafaaeb608a37c7840d39;
             s = 0x34fdc6967c776567d84cb63b54beb8d36e194d5db34ee20c31ffd8436417de3d;
         } else if (block.chainid == 31337) {
-            deadline = 1734729304;
+            deadline = 1734744673;
             v = 27;
-            r = 0x7242d9b9f86dbe2f46939b7b44c95a7f4b9c4c93af13c15ed0b74d523c5accae;
-            s = 0x42727dfab8675fd2d5f9f10a7542f457620716f83a5dfeea0d9ade92e7871266;
+            r = 0x523f811c7e491f5c67730392bb80082db06baaeaa63017f2b6b040c2992be567;
+            s = 0x17effecb7b28b791c733f26ef0da252270089e8b57cc0cced67601c937f75fc9;
         } else {
             revert("Unsupported Chain");
         }
