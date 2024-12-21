@@ -10,6 +10,7 @@ import {FixedPointMathLib} from "solmate/src/utils/FixedPointMathLib.sol";
 import {ERC20}             from "solmate/src/tokens/ERC20.sol";
 
 import {IOracle} from "../interfaces/IOracle.sol";
+import {FUSD} from "./FUSD.sol";
 
 contract Manager is ERC4626 {
     using SafeTransferLib   for ERC20;
@@ -19,7 +20,7 @@ contract Manager is ERC4626 {
     uint public constant MIN_COLLAT_RATIO   = 1.3e18; // 130%
     uint public constant STALE_DATA_TIMEOUT = 24 hours;
 
-    ERC20   public immutable fusd;
+    FUSD    public immutable fusd;
     ERC20   public immutable wstETH;
     IOracle public immutable oracle;
 
@@ -34,10 +35,10 @@ contract Manager is ERC4626 {
     mapping(address => uint) public minted;
 
     constructor(
-        ERC20   _fusd,
+        FUSD    _fusd,
         ERC20   _wstETH,
         IOracle _oracle
-    ) ERC4626(_fusd, "Fortis wstETH", "fwstETH") {
+    ) ERC4626(_wstETH, "Fortis wstETH", "fwstETH") {
         fusd   = _fusd;
         wstETH = _wstETH;
         oracle = _oracle;
@@ -120,7 +121,7 @@ contract Manager is ERC4626 {
         require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
         minted[owner] += amount;
         if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("UNSUFFICIENT_COLLATERAL");
-        fusd.mint(recipient, amount);
+        fusd.mint(receiver, amount);
     }
 
     function collatRatio(address owner) public view returns (uint) {
