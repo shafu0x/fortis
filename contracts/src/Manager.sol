@@ -3,16 +3,18 @@ pragma solidity =0.8.26;
 
 import "forge-std/src/Test.sol";
 
-import {ERC4626}         from "solmate/src/tokens/ERC4626.sol";
-import {SafeTransferLib} from "solmate/src/utils/SafeTransferLib.sol";
-import {SafeCast}        from "@openzeppelin/utils/math/SafeCast.sol";
-import {ERC20}           from "solmate/src/tokens/ERC20.sol";
+import {ERC4626}           from "solmate/src/tokens/ERC4626.sol";
+import {SafeTransferLib}   from "solmate/src/utils/SafeTransferLib.sol";
+import {SafeCast}          from "@openzeppelin/utils/math/SafeCast.sol";
+import {FixedPointMathLib} from "solmate/src/utils/FixedPointMathLib.sol";
+import {ERC20}             from "solmate/src/tokens/ERC20.sol";
 
 import {IOracle} from "../interfaces/IOracle.sol";
 
 contract Manager is ERC4626 {
-    using SafeTransferLib for ERC20;
-    using SafeCast        for int256;
+    using SafeTransferLib   for ERC20;
+    using SafeCast          for int256;
+    using FixedPointMathLib for uint256;
 
     uint public constant MIN_COLLAT_RATIO   = 1.3e18; // 130%
     uint public constant STALE_DATA_TIMEOUT = 24 hours;
@@ -25,10 +27,11 @@ contract Manager is ERC4626 {
     mapping(address => address) public delegates;
 
     bytes32 public constant UNLOCK_TYPEHASH = keccak256(
-        "Unlock(address user,uint256 nonce,uint256 deadline,address delegate)"
+        "Unlock(address owner,uint256 nonce,uint256 deadline,address delegate)"
     );
 
-    mapping(address => uint256) public deposits;
+    mapping(address => uint) public deposits;
+    mapping(address => uint) public minted;
 
     constructor(
         ERC20   _fusd,
@@ -76,7 +79,7 @@ contract Manager is ERC4626 {
             uint256 allowed = allowance[owner][msg.sender];
             if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
         }
-        _withdraw(owner, receiver, assets, shares);
+        _withdraw(assets, shares, owner, receiver);
     }
 
     function redeem(uint256 shares, address receiver, address owner)
@@ -89,22 +92,22 @@ contract Manager is ERC4626 {
             if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
         }
         require((assets = previewRedeem(shares)) != 0, "ZERO_ASSETS");
-        _withdraw(owner, receiver, assets, shares);
+        _withdraw(assets, shares, owner, receiver);
     }
 
-    function withdrawFrom(address from, uint assets, address receiver) external {
-        require(isUnlocked(from));
+    function withdrawFrom(uint assets, address receiver, address owner) external {
+        require(isUnlocked(owner));
         uint shares = previewWithdraw(assets);
-        _withdraw(from, receiver, assets, shares);
+        _withdraw(assets, shares, owner, receiver);
     }
 
-    function redeemFrom(address from, uint shares, address receiver) external {
-        require(isUnlocked(from));
+    function redeemFrom(uint shares, address receiver, address owner) external {
+        require(isUnlocked(owner));
         uint assets = previewRedeem(shares);
-        _withdraw(from, receiver, assets, shares);
+        _withdraw(assets, shares, owner, receiver);
     }
 
-    function _withdraw(address owner, address receiver, uint assets, uint shares) internal {
+    function _withdraw(uint assets, uint shares, address owner, address receiver) internal {
         _burn(owner, shares);
         asset.safeTransfer(receiver, assets);
 
@@ -116,6 +119,13 @@ contract Manager is ERC4626 {
         return wstETH.balanceOf(address(this));
     }
 
+    function collatRatio(address owner) public view returns (uint) {
+        uint _minted = minted[owner];
+        if (_minted == 0) return type(uint).max;
+        uint totalValue = deposits[owner] * assetPrice() * 1e8;
+        return totalValue.divWadDown(_minted);
+    }
+
     function assetPrice() public view returns (uint256) {
         (, int256 answer,, uint256 updatedAt,) = oracle.latestRoundData();
         if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("Stale data");
@@ -123,7 +133,7 @@ contract Manager is ERC4626 {
     }
 
     function unlock(
-        address user,
+        address owner,
         address delegate,
         uint256 deadline,
         uint8   v,
@@ -136,8 +146,8 @@ contract Manager is ERC4626 {
         bytes32 structHash = keccak256(
             abi.encode(
                 UNLOCK_TYPEHASH,
-                user,
-                nonces[user],  // Prevent replay attacks
+                owner,
+                nonces[owner],  // Prevent replay attacks
                 deadline,
                 delegate
             )
@@ -149,23 +159,23 @@ contract Manager is ERC4626 {
 
         address signer = ecrecover(digest, v, r, s);
 
-        require(signer == user, "Invalid signature");
+        require(signer == owner, "Invalid signature");
 
-        nonces[user]++;
+        nonces[owner]++;
 
-        unlocked [user] = true;
-        delegates[user] = delegate;
+        unlocked [owner] = true;
+        delegates[owner] = delegate;
     }
 
-    function lock(address user) external {
-        require(delegates[user] == msg.sender);
-        require(unlocked[user]);
-        unlocked [user] = false;
-        delegates[user] = address(0);
+    function lock(address owner) external {
+        require(delegates[owner] == msg.sender);
+        require(unlocked[owner]);
+        unlocked [owner] = false;
+        delegates[owner] = address(0);
     }
 
-    function isUnlocked(address user) public view returns (bool) {
-        return unlocked[user] && delegates[user] == msg.sender;
+    function isUnlocked(address owner) public view returns (bool) {
+        return unlocked[owner] && delegates[owner] == msg.sender;
     }
 
     function increaseNonce() external {
