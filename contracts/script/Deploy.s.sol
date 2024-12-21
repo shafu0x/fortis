@@ -6,6 +6,7 @@ import {ERC20} from "solmate/src/tokens/ERC20.sol";
 
 import {FUSD}        from "../src/FUSD.sol";
 import {Manager}     from "../src/Manager.sol";
+import {Fortis}      from "../src/Fortis.sol";
 import {IOracle}     from "../interfaces/IOracle.sol";
 import {Router}      from "../src/Router.sol";
 import {Parameters}  from "../Parameters.sol";
@@ -35,11 +36,12 @@ contract Deploy is Script, Parameters {
         }
     }
 
-    function run() public returns (FUSD, Manager, Router) {
+    function run() public returns (Fortis, FUSD, Manager, Router) {
         setUp();
 
         vm.startBroadcast(); // ----------------------
 
+        Fortis  fortis  = new Fortis();
         FUSD    fUSD    = new FUSD();
         Manager manager = new Manager(
             fUSD,
@@ -55,6 +57,7 @@ contract Deploy is Script, Parameters {
         vm.stopBroadcast(); // ----------------------------
 
         return (
+            fortis,
             fUSD,
             manager,
             router
