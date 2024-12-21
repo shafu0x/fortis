@@ -147,6 +147,12 @@ contract Manager is ERC4626 {
         fusd.mint(receiver, amount);
     }
 
+    function burnFUSD(uint amount, address owner, address receiver) external harvestBefore {
+        require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
+        fusd.burn(receiver, amount);
+        minted[owner] -= amount;
+    }
+
     function collatRatio(address owner) public view returns (uint) {
         uint _minted = minted[owner];
         if (_minted == 0) return type(uint).max;
