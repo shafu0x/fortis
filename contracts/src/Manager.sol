@@ -107,6 +107,8 @@ contract Manager {
     }
 
     function lock(address user) external {
+        require(delegates[user] == msg.sender);
+        require(unlocked[user]);
         unlocked [user] = false;
         delegates[user] = address(0);
     }
