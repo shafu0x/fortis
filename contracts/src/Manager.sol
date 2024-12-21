@@ -116,8 +116,11 @@ contract Manager is ERC4626 {
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
-    function totalAssets() public view override returns (uint256) {
-        return wstETH.balanceOf(address(this));
+    function mintFUSD(uint amount, address owner, address receiver) external {
+        require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
+        minted[owner] += amount;
+        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("UNSUFFICIENT_COLLATERAL");
+        fusd.mint(recipient, amount);
     }
 
     function collatRatio(address owner) public view returns (uint) {
@@ -131,6 +134,10 @@ contract Manager is ERC4626 {
         (, int256 answer,, uint256 updatedAt,) = oracle.latestRoundData();
         if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("Stale data");
         return answer.toUint256();
+    }
+
+    function totalAssets() public view override returns (uint256) {
+        return wstETH.balanceOf(address(this));
     }
 
     function unlock(
