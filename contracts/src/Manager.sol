@@ -137,7 +137,7 @@ contract Manager is ERC4626 {
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
-    function mintFUSD(uint amount, address owner, address receiver) external {
+    function mintFUSD(uint amount, address owner, address receiver) external harvestBefore {
         require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
         minted[owner] += amount;
         if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
