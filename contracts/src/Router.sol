@@ -28,9 +28,9 @@ contract Router {
             s
         );
 
-        manager.depositFor(recipient, amount);
-        manager.withdrawFor(recipient, 100);
-        manager.withdrawFor(recipient, 50);
+        // manager.depositFor(recipient, amount);
+        // manager.withdrawFor(recipient, 100);
+        // manager.withdrawFor(recipient, 50);
 
         manager.lock(recipient);
     }

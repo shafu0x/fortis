@@ -2,7 +2,7 @@
 pragma solidity =0.8.26;
 
 import "forge-std/src/Script.sol";
-import {ERC20} from "@openzeppelin/token/ERC20/ERC20.sol";
+import {ERC20} from "solmate/src/tokens/ERC20.sol";
 
 import {FUSD}        from "../src/FUSD.sol";
 import {Manager}     from "../src/Manager.sol";
