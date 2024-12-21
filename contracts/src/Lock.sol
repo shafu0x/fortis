@@ -54,7 +54,7 @@ contract Lock {
     }
 
     function isUnlocked(address user) external view returns (bool) {
-        return unlocked[msg.sender] && delegates[msg.sender] == user;
+        return unlocked[user] && delegates[user] == msg.sender;
     }
 
     function increaseNonce() external {
