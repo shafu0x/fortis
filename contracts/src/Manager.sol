@@ -28,6 +28,8 @@ contract Manager is ERC4626 {
         "Unlock(address user,uint256 nonce,uint256 deadline,address delegate)"
     );
 
+    mapping(address => uint256) public deposits;
+
     constructor(
         ERC20   _fusd,
         ERC20   _wstETH,
@@ -38,18 +40,76 @@ contract Manager is ERC4626 {
         oracle = _oracle;
     }
 
+    function deposit(uint256 assets, address receiver)
+        public
+        override
+        returns (uint256 shares)
+    {
+        require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
+        _deposit(assets, shares, receiver);
+    }
+
+    function mint(uint256 shares, address receiver)
+        public
+        override
+        returns (uint256 assets)
+    {
+        assets = previewMint(shares);
+        _deposit(assets, shares, receiver);
+    }
+
+    function _deposit(uint assets, uint shares, address receiver) internal {
+        asset.safeTransferFrom(msg.sender, address(this), assets);
+        _mint(receiver, shares);
+
+        deposits[receiver] += assets;
+        emit Deposit(msg.sender, receiver, assets, shares);
+    }
+
+    function withdraw(uint256 assets, address receiver, address owner)
+        public
+        override
+        returns (uint256 shares)
+    {
+        shares = previewWithdraw(assets);
+        if (msg.sender != owner) {
+            uint256 allowed = allowance[owner][msg.sender];
+            if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
+        }
+        _withdraw(owner, receiver, assets, shares);
+    }
+
+    function redeem(uint256 shares, address receiver, address owner)
+        public
+        override
+        returns (uint256 assets)
+    {
+        if (msg.sender != owner) {
+            uint256 allowed = allowance[owner][msg.sender]; 
+            if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
+        }
+        require((assets = previewRedeem(shares)) != 0, "ZERO_ASSETS");
+        _withdraw(owner, receiver, assets, shares);
+    }
+
     function withdrawFrom(address from, uint assets, address receiver) external {
         require(isUnlocked(from));
         uint shares = previewWithdraw(assets);
-        _burn(from, shares);
-        asset.safeTransfer(receiver, assets);
+        _withdraw(from, receiver, assets, shares);
     }
 
     function redeemFrom(address from, uint shares, address receiver) external {
         require(isUnlocked(from));
         uint assets = previewRedeem(shares);
-        _burn(from, shares);
+        _withdraw(from, receiver, assets, shares);
+    }
+
+    function _withdraw(address owner, address receiver, uint assets, uint shares) internal {
+        _burn(owner, shares);
         asset.safeTransfer(receiver, assets);
+
+        deposits[owner] -= assets;
+        emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
     function totalAssets() public view override returns (uint256) {
