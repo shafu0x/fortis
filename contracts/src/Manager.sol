@@ -18,10 +18,10 @@ contract Manager is ERC4626 {
     using SafeCast          for int256;
     using FixedPointMathLib for uint256;
 
-    uint public constant MIN_COLLAT_RATIO        = 1.3e18; // 130%
+    uint public constant MIN_COLLAT_RATIO        = 1.3e18;   // 130%
+    uint public constant PERFORMANCE_FEE_BPS     = 1;        // 0.01%
+    uint public constant LIQUIDATION_PENALTY_BPS = 1100;     // 110%
     uint public constant STALE_DATA_TIMEOUT      = 24 hours;
-    uint public constant PERFORMANCE_FEE_BPS     = 1;      // 0.01%
-    uint public constant LIQUIDATION_PENALTY_BPS = 1100; // 110%
 
     FUSD    public immutable fusd;
     ERC20   public immutable wstETH;
