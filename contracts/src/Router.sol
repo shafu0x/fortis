@@ -4,12 +4,11 @@ pragma solidity =0.8.26;
 import "forge-std/src/Test.sol";
 import {Manager} from "./Manager.sol";
 
-contract Batcher {
+contract Router {
     Manager public manager;
 
     constructor(Manager _manager) {
         manager = _manager;
-        console.log("XXX", address(this));
     }
 
     function depositAndWithdraw(
