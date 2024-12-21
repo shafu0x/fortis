@@ -31,19 +31,7 @@ contract Manager {
         ERC20   _wstETH,
         IOracle _oracle
     ) {
-        uint256 chainId;
-        assembly {
-            chainId := chainid()
-        }
-        DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
-                keccak256(bytes("FUSD_Manager")), 
-                keccak256(bytes("1")),
-                chainId,
-                address(this)
-            )
-        );
+        setDomainSeperator();
 
         fusd   = _fusd;
         wstETH = _wstETH;
@@ -115,5 +103,25 @@ contract Manager {
 
     function isUnlocked(address user) external view returns (bool) {
         return unlocked[msg.sender] && delegates[msg.sender] == user;
+    }
+
+    function increaseNonce() external {
+        nonces[msg.sender]++;
+    }
+
+    function setDomainSeperator() public {
+        uint256 chainId;
+        assembly {
+            chainId := chainid()
+        }
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("FUSD_Manager")), 
+                keccak256(bytes("1")),
+                chainId,
+                address(this)
+            )
+        );
     }
 }
