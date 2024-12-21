@@ -44,7 +44,8 @@ contract Deploy is Script, Parameters {
         Manager manager = new Manager(
             fUSD,
             wsteth, 
-            oracle
+            oracle,
+            address(0)
         );
 
         fUSD.transferOwnership(address(manager));

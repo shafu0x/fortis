@@ -10,19 +10,25 @@ import {FixedPointMathLib} from "solmate/src/utils/FixedPointMathLib.sol";
 import {ERC20}             from "solmate/src/tokens/ERC20.sol";
 
 import {IOracle} from "../interfaces/IOracle.sol";
-import {FUSD} from "./FUSD.sol";
+import {IWstETH} from "../interfaces/IWstETH.sol";
+import {FUSD}    from "./FUSD.sol";
 
 contract Manager is ERC4626 {
     using SafeTransferLib   for ERC20;
     using SafeCast          for int256;
     using FixedPointMathLib for uint256;
 
-    uint public constant MIN_COLLAT_RATIO   = 1.3e18; // 130%
-    uint public constant STALE_DATA_TIMEOUT = 24 hours;
+    uint public constant MIN_COLLAT_RATIO    = 1.3e18; // 130%
+    uint public constant STALE_DATA_TIMEOUT  = 24 hours;
+    uint public constant PERFORMANCE_FEE_BPS = 1;      // 0.01%
 
     FUSD    public immutable fusd;
     ERC20   public immutable wstETH;
     IOracle public immutable oracle;
+    address public immutable feeReceiver;
+
+    uint public lastVaultBalanceWstETH;
+    uint public lastStEthPerWstEth;
 
     mapping(address => bool)    public unlocked;
     mapping(address => address) public delegates;
@@ -37,16 +43,27 @@ contract Manager is ERC4626 {
     constructor(
         FUSD    _fusd,
         ERC20   _wstETH,
-        IOracle _oracle
+        IOracle _oracle,
+        address _feeReceiver
     ) ERC4626(_wstETH, "Fortis wstETH", "fwstETH") {
-        fusd   = _fusd;
-        wstETH = _wstETH;
-        oracle = _oracle;
+        fusd        = _fusd;
+        wstETH      = _wstETH;
+        oracle      = _oracle;
+        feeReceiver = _feeReceiver;
+
+        lastVaultBalanceWstETH = _wstETH.balanceOf(address(this));
+        lastStEthPerWstEth     = IWstETH(address(_wstETH)).stEthPerToken(); // TODO: refactor
+    }
+
+    modifier harvestBefore() {
+        _harvestYield();
+        _;
     }
 
     function deposit(uint256 assets, address receiver)
         public
         override
+        harvestBefore
         returns (uint256 shares)
     {
         require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
@@ -56,6 +73,7 @@ contract Manager is ERC4626 {
     function mint(uint256 shares, address receiver)
         public
         override
+        harvestBefore
         returns (uint256 assets)
     {
         assets = previewMint(shares);
@@ -73,6 +91,7 @@ contract Manager is ERC4626 {
     function withdraw(uint256 assets, address receiver, address owner)
         public
         override
+        harvestBefore
         returns (uint256 shares)
     {
         shares = previewWithdraw(assets);
@@ -86,6 +105,7 @@ contract Manager is ERC4626 {
     function redeem(uint256 shares, address receiver, address owner)
         public
         override
+        harvestBefore
         returns (uint256 assets)
     {
         if (msg.sender != owner) {
@@ -139,6 +159,57 @@ contract Manager is ERC4626 {
 
     function totalAssets() public view override returns (uint256) {
         return wstETH.balanceOf(address(this));
+    }
+
+    function _harvestYield() internal {
+        // 1) Check current ratio
+        uint256 currentRatio = IWstETH(address(wstETH)).stEthPerToken(); // TODO: refactor
+
+        // 2) If ratio has not increased, no yield to skim
+        if (currentRatio <= lastStEthPerWstEth) {
+            return; 
+        }
+
+        // 3) The old vault balance in wstETH
+        uint256 oldBalance = lastVaultBalanceWstETH;
+        if (oldBalance == 0) {
+            // If the vault had 0 wstETH last time, no yield
+            lastStEthPerWstEth = currentRatio;
+            return;
+        }
+
+        // 4) stETH yield from ratio growth:
+        //
+        //    yieldInStEth = oldBalance * (currentRatio - lastStEthPerWstEth)
+        //    yieldInWstEth = yieldInStEth / currentRatio
+        //                  = oldBalance * [ (currentRatio - lastStEthPerWstEth) / currentRatio ]
+        //                  = oldBalance * (1 - (lastStEthPerWstEth / currentRatio))
+        //
+        uint256 ratioDiff     = currentRatio - lastStEthPerWstEth;
+        uint256 yieldInStEth  = oldBalance * ratioDiff;
+        uint256 yieldInWstEth = yieldInStEth / currentRatio;
+
+        // 5) The portion of that yield that is our fee
+        uint256 feeInWstEth = (yieldInWstEth * PERFORMANCE_FEE_BPS) / 10_000;
+        if (feeInWstEth > 0) {
+            // 6) Convert that wstETH amount into vault shares at current share price
+            //    sharePrice = totalAssets() / totalSupply
+            //    so shares = feeInWstEth * totalSupply / totalAssets
+            uint256 _totalSupply = totalSupply;
+            uint256 _totalAssets = totalAssets();
+
+            // Avoid edge cases if totalSupply == 0
+            if (_totalSupply > 0 && _totalAssets > 0) {
+                uint256 feeShares = feeInWstEth.mulDivDown(_totalSupply, _totalAssets);
+                if (feeShares > 0) {
+                    // Mint those shares to feeReceiver
+                    _mint(feeReceiver, feeShares);
+                }
+            }
+        }
+
+        // 7) Update the ratio baseline
+        lastStEthPerWstEth = currentRatio;
     }
 
     function unlock(
