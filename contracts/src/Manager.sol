@@ -5,13 +5,17 @@ import "forge-std/src/Test.sol";
 
 import {ERC4626}         from "solmate/src/tokens/ERC4626.sol";
 import {SafeTransferLib} from "solmate/src/utils/SafeTransferLib.sol";
+import {SafeCast}        from "@openzeppelin/utils/math/SafeCast.sol";
 import {ERC20}           from "solmate/src/tokens/ERC20.sol";
 
 import {IOracle} from "../interfaces/IOracle.sol";
 
 contract Manager is ERC4626 {
     using SafeTransferLib for ERC20;
-    uint public constant MIN_COLLAT_RATIO = 1.3e18; // 130%
+    using SafeCast        for int256;
+
+    uint public constant MIN_COLLAT_RATIO   = 1.3e18; // 130%
+    uint public constant STALE_DATA_TIMEOUT = 24 hours;
 
     ERC20   public immutable fusd;
     ERC20   public immutable wstETH;
@@ -50,6 +54,12 @@ contract Manager is ERC4626 {
 
     function totalAssets() public view override returns (uint256) {
         return wstETH.balanceOf(address(this));
+    }
+
+    function assetPrice() public view returns (uint256) {
+        (, int256 answer,, uint256 updatedAt,) = oracle.latestRoundData();
+        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("Stale data");
+        return answer.toUint256();
     }
 
     function unlock(
