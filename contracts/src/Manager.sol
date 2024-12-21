@@ -120,13 +120,13 @@ contract Manager is ERC4626 {
     }
 
     function withdrawFrom(uint assets, address receiver, address owner) external {
-        require(isUnlocked(owner));
+        require(isUnlocked(owner), "NOT_UNLOCKED");
         uint shares = previewWithdraw(assets);
         _withdraw(assets, shares, owner, receiver);
     }
 
     function redeemFrom(uint shares, address receiver, address owner) external {
-        require(isUnlocked(owner));
+        require(isUnlocked(owner), "NOT_UNLOCKED");
         uint assets = previewRedeem(shares);
         _withdraw(assets, shares, owner, receiver);
     }
@@ -252,8 +252,8 @@ contract Manager is ERC4626 {
         bytes32 r,
         bytes32 s
     ) external {
-        require(delegate == msg.sender);
-        require(block.timestamp <= deadline, "Signature expired");
+        require(delegate == msg.sender, "NOT_DELEGATE");
+        require(block.timestamp <= deadline, "DEADLINE_EXPIRED");
 
         bytes32 structHash = keccak256(
             abi.encode(
@@ -271,7 +271,7 @@ contract Manager is ERC4626 {
 
         address signer = ecrecover(digest, v, r, s);
 
-        require(signer == owner, "Invalid signature");
+        require(signer == owner, "INVALID_SIGNATURE");
 
         nonces[owner]++;
 
@@ -280,8 +280,8 @@ contract Manager is ERC4626 {
     }
 
     function lock(address owner) external {
-        require(delegates[owner] == msg.sender);
-        require(unlocked[owner]);
+        require(delegates[owner] == msg.sender, "NOT_DELEGATE");
+        require(unlocked[owner], "NOT_UNLOCKED");
         unlocked [owner] = false;
         delegates[owner] = address(0);
     }
