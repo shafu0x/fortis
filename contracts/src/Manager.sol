@@ -109,7 +109,7 @@ contract Manager is ERC4626 {
     }
 
     function _withdraw(uint assets, uint shares, address owner, address receiver) internal {
-        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("UNSUFFICIENT_COLLATERAL");
+        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
         _burn(owner, shares);
         asset.safeTransfer(receiver, assets);
 
@@ -120,7 +120,7 @@ contract Manager is ERC4626 {
     function mintFUSD(uint amount, address owner, address receiver) external {
         require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
         minted[owner] += amount;
-        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("UNSUFFICIENT_COLLATERAL");
+        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
         fusd.mint(receiver, amount);
     }
 
