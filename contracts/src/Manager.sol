@@ -18,9 +18,10 @@ contract Manager is ERC4626 {
     using SafeCast          for int256;
     using FixedPointMathLib for uint256;
 
-    uint public constant MIN_COLLAT_RATIO    = 1.3e18; // 130%
-    uint public constant STALE_DATA_TIMEOUT  = 24 hours;
-    uint public constant PERFORMANCE_FEE_BPS = 1;      // 0.01%
+    uint public constant MIN_COLLAT_RATIO        = 1.3e18; // 130%
+    uint public constant STALE_DATA_TIMEOUT      = 24 hours;
+    uint public constant PERFORMANCE_FEE_BPS     = 1;      // 0.01%
+    uint public constant LIQUIDATION_PENALTY_BPS = 1100; // 110%
 
     FUSD    public immutable fusd;
     ERC20   public immutable wstETH;
@@ -39,6 +40,8 @@ contract Manager is ERC4626 {
 
     mapping(address => uint) public deposits;
     mapping(address => uint) public minted;
+
+    event Liquidate(address indexed owner, address indexed liquidator, uint256 amount, uint256 wstEthToSeize);
 
     constructor(
         FUSD    _fusd,
@@ -157,13 +160,42 @@ contract Manager is ERC4626 {
         return answer.toUint256();
     }
 
-    function totalAssets() public view override returns (uint256) {
+    function totalAssets() public view override returns (uint) {
         return wstETH.balanceOf(address(this));
+    }
+
+    function liquidate(address owner, uint amount, address receiver) external {
+        require(collatRatio(owner) < MIN_COLLAT_RATIO, "NOT_UNDERCOLLATERALIZED");
+
+        uint debt = minted[owner];
+        if (amount > debt) {
+            amount = debt; 
+        }
+        require(amount > 0, "NO_DEBT_TO_REPAY");
+
+        uint price = assetPrice(); 
+        uint wstEthToSeize = amount
+            .mulDivDown(LIQUIDATION_PENALTY_BPS, 10000)
+            .mulDivDown(1e8, price);
+
+        uint wstEthBalance = deposits[owner];
+        if (wstEthToSeize > wstEthBalance) {
+            wstEthToSeize = wstEthBalance;
+        }
+
+        minted[owner]   = debt - amount;
+        deposits[owner] = wstEthBalance - wstEthToSeize;
+
+        fusd.burn(msg.sender, amount);
+
+        asset.safeTransfer(receiver, wstEthToSeize);
+
+        emit Liquidate(owner, msg.sender, amount, wstEthToSeize);
     }
 
     function _harvestYield() internal {
         // 1) Check current ratio
-        uint256 currentRatio = IWstETH(address(wstETH)).stEthPerToken(); // TODO: refactor
+        uint currentRatio = IWstETH(address(wstETH)).stEthPerToken(); // TODO: refactor
 
         // 2) If ratio has not increased, no yield to skim
         if (currentRatio <= lastStEthPerWstEth) {
@@ -171,7 +203,7 @@ contract Manager is ERC4626 {
         }
 
         // 3) The old vault balance in wstETH
-        uint256 oldBalance = lastVaultBalanceWstETH;
+        uint oldBalance = lastVaultBalanceWstETH;
         if (oldBalance == 0) {
             // If the vault had 0 wstETH last time, no yield
             lastStEthPerWstEth = currentRatio;
@@ -185,22 +217,22 @@ contract Manager is ERC4626 {
         //                  = oldBalance * [ (currentRatio - lastStEthPerWstEth) / currentRatio ]
         //                  = oldBalance * (1 - (lastStEthPerWstEth / currentRatio))
         //
-        uint256 ratioDiff     = currentRatio - lastStEthPerWstEth;
-        uint256 yieldInStEth  = oldBalance * ratioDiff;
-        uint256 yieldInWstEth = yieldInStEth / currentRatio;
+        uint ratioDiff     = currentRatio - lastStEthPerWstEth;
+        uint yieldInStEth  = oldBalance * ratioDiff;
+        uint yieldInWstEth = yieldInStEth / currentRatio;
 
         // 5) The portion of that yield that is our fee
-        uint256 feeInWstEth = (yieldInWstEth * PERFORMANCE_FEE_BPS) / 10_000;
+        uint feeInWstEth = (yieldInWstEth * PERFORMANCE_FEE_BPS) / 10_000;
         if (feeInWstEth > 0) {
             // 6) Convert that wstETH amount into vault shares at current share price
             //    sharePrice = totalAssets() / totalSupply
             //    so shares = feeInWstEth * totalSupply / totalAssets
-            uint256 _totalSupply = totalSupply;
-            uint256 _totalAssets = totalAssets();
+            uint _totalSupply = totalSupply;
+            uint _totalAssets = totalAssets();
 
             // Avoid edge cases if totalSupply == 0
             if (_totalSupply > 0 && _totalAssets > 0) {
-                uint256 feeShares = feeInWstEth.mulDivDown(_totalSupply, _totalAssets);
+                uint feeShares = feeInWstEth.mulDivDown(_totalSupply, _totalAssets);
                 if (feeShares > 0) {
                     // Mint those shares to feeReceiver
                     _mint(feeReceiver, feeShares);
