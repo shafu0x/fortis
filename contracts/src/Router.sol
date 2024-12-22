@@ -53,6 +53,6 @@ contract Router {
                             * (10 ** (oracle.decimals() + asset.decimals())) 
                             / manager.assetPrice() 
                             / 1e18;
-        manager.withdraw(redeemAmount, receiver, params.owner);
+        manager.withdrawFrom(redeemAmount, receiver, params.owner);
     }
 }
