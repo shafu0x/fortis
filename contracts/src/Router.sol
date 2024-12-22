@@ -49,7 +49,7 @@ contract Router {
         uint    amount,
         LockParams memory params
     ) external unlock(params) {
-        assets.transferFrom(params.owner, address(this), assets);
+        asset.transferFrom(params.owner, address(this), assets);
         manager.deposit(assets, receiver);
         manager.mintFUSD(amount, params.owner, receiver);
     }
