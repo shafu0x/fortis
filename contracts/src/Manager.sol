@@ -26,7 +26,7 @@ contract Manager is ERC4626, Owned {
     uint public constant STALE_DATA_TIMEOUT      = 24 hours;
 
     FUSD    public immutable fusd;
-    ERC20   public immutable wstETH;
+    IWstETH public immutable wstETH;
     IOracle public immutable oracle;
 
     address public feeReceiver;
@@ -48,18 +48,18 @@ contract Manager is ERC4626, Owned {
 
     constructor(
         FUSD    _fusd,
-        ERC20   _wstETH,
+        IWstETH _wstETH,
         IOracle _oracle,
         address _feeReceiver
     ) Owned(msg.sender) 
-      ERC4626(_wstETH, "Fortis wstETH", "fwstETH") {
+      ERC4626(ERC20(address(_wstETH)), "Fortis wstETH", "fwstETH") {
         fusd        = _fusd;
         wstETH      = _wstETH;
         oracle      = _oracle;
         feeReceiver = _feeReceiver;
 
-        lastVaultBalanceWstETH = _wstETH.balanceOf(address(this));
-        lastStEthPerWstEth     = IWstETH(address(_wstETH)).stEthPerToken(); // TODO: refactor
+        lastVaultBalanceWstETH = wstETH.balanceOf(address(this));
+        lastStEthPerWstEth     = wstETH.stEthPerToken();
     }
 
     modifier harvestBefore() {
@@ -215,7 +215,7 @@ contract Manager is ERC4626, Owned {
 
     function _harvestYield() internal {
         // 1) Check current ratio
-        uint currentRatio = IWstETH(address(wstETH)).stEthPerToken(); // TODO: refactor
+        uint currentRatio = wstETH.stEthPerToken(); 
 
         // 2) If ratio has not increased, no yield to skim
         if (currentRatio <= lastStEthPerWstEth) {

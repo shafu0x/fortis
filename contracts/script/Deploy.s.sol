@@ -8,13 +8,14 @@ import {FUSD}        from "../src/FUSD.sol";
 import {Manager}     from "../src/Manager.sol";
 import {Fortis}      from "../src/Fortis.sol";
 import {IOracle}     from "../interfaces/IOracle.sol";
+import {IWstETH}     from "../interfaces/IWstETH.sol";
 import {Router}      from "../src/Router.sol";
 import {Parameters}  from "../Parameters.sol";
 import {WstETH_Mock} from "../mocks/WstEth_Mock.sol";
 import {Oracle_Mock} from "../mocks/Oracle_Mock.sol";
 
 contract Deploy is Script, Parameters {
-    ERC20   wsteth;
+    IWstETH wsteth;
     IOracle oracle;
     Router  router;
 
@@ -23,7 +24,7 @@ contract Deploy is Script, Parameters {
         console.log("Deploying on Chain:", block.chainid);
 
         if (chainId == 10) {
-            wsteth = ERC20  (OPTIMISM_WSTETH);
+            wsteth = IWstETH(OPTIMISM_WSTETH);
             oracle = IOracle(OPTIMISM_ORACLE_WSTETH_USD);
 
             vm.createSelectFork(vm.envString("OPTIMISM_INFURA_URL"));
