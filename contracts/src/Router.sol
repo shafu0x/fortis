@@ -43,16 +43,27 @@ contract Router {
         asset   = manager.asset();
     }
 
-    function redeem(
+    function depositAndMint(
         address receiver,
+        uint    assets,
         uint    amount,
         LockParams memory params
+    ) external unlock(params) {
+        assets.transferFrom(params.owner, address(this), assets);
+        manager.deposit(assets, receiver);
+        manager.mintFUSD(amount, params.owner, receiver);
+    }
+
+    function burnAndWithdraw(
+        address receiver,
+        uint    assets,
+        LockParams memory params
     ) external unlock(params){
-        manager.burnFUSD(amount, params.owner);
-        uint redeemAmount = amount 
+        manager.burnFUSD(assets, params.owner);
+        uint redeemAssets = assets 
                             * (10 ** (oracle.decimals() + asset.decimals())) 
                             / manager.assetPrice() 
                             / 1e18;
-        manager.withdrawFrom(redeemAmount, receiver, params.owner);
+        manager.withdrawFrom(redeemAssets, receiver, params.owner);
     }
 }
