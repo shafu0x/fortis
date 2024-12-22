@@ -219,53 +219,31 @@ contract Manager is ERC4626, Owned {
     }
 
     function _harvestYield() internal {
-        // 1) Check current ratio
         uint currentRatio = wstETH.stEthPerToken(); 
 
-        // 2) If ratio has not increased, no yield to skim
-        if (currentRatio <= lastStEthPerWstEth) {
-            return; 
-        }
+        if (currentRatio <= lastStEthPerWstEth) { return; }
 
-        // 3) The old vault balance in wstETH
         uint oldBalance = lastVaultBalanceWstETH;
         if (oldBalance == 0) {
-            // If the vault had 0 wstETH last time, no yield
             lastStEthPerWstEth = currentRatio;
             return;
         }
 
-        // 4) stETH yield from ratio growth:
-        //
-        //    yieldInStEth = oldBalance * (currentRatio - lastStEthPerWstEth)
-        //    yieldInWstEth = yieldInStEth / currentRatio
-        //                  = oldBalance * [ (currentRatio - lastStEthPerWstEth) / currentRatio ]
-        //                  = oldBalance * (1 - (lastStEthPerWstEth / currentRatio))
-        //
         uint ratioDiff     = currentRatio - lastStEthPerWstEth;
         uint yieldInStEth  = oldBalance * ratioDiff;
         uint yieldInWstEth = yieldInStEth / currentRatio;
 
-        // 5) The portion of that yield that is our fee
         uint feeInWstEth = (yieldInWstEth * PERFORMANCE_FEE_BPS) / 10_000;
         if (feeInWstEth > 0) {
-            // 6) Convert that wstETH amount into vault shares at current share price
-            //    sharePrice = totalAssets() / totalSupply
-            //    so shares = feeInWstEth * totalSupply / totalAssets
             uint _totalSupply = totalSupply;
             uint _totalAssets = totalAssets();
 
-            // Avoid edge cases if totalSupply == 0
             if (_totalSupply > 0 && _totalAssets > 0) {
                 uint feeShares = feeInWstEth.mulDivDown(_totalSupply, _totalAssets);
-                if (feeShares > 0) {
-                    // Mint those shares to feeReceiver
-                    _mint(feeReceiver, feeShares);
-                }
+                if (feeShares > 0) { _mint(feeReceiver, feeShares); }
             }
         }
 
-        // 7) Update the ratio baseline
         lastStEthPerWstEth = currentRatio;
     }
 
