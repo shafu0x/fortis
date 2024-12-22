@@ -20,8 +20,9 @@ contract Manager is ERC4626, Owned {
     using FixedPointMathLib for uint256;
 
     uint public constant MIN_COLLAT_RATIO        = 1.3e18;   // 130%
-    uint public constant WITHDRAWAL_FEE_BPS      = 10;       // 0.1%
     uint public constant PERFORMANCE_FEE_BPS     = 1;        // 0.01%
+    uint public constant WITHDRAWAL_FEE_BPS      = 10;       // 0.1%
+    uint public constant LIQUIDATION_FEE_BPS     = 100;      // 1%
     uint public constant LIQUIDATION_PENALTY_BPS = 1100;     // 110%
     uint public constant STALE_DATA_TIMEOUT      = 24 hours;
 
@@ -44,7 +45,7 @@ contract Manager is ERC4626, Owned {
     mapping(address => uint) public deposits;
     mapping(address => uint) public minted;
 
-    event Liquidate(address indexed owner, address indexed liquidator, uint256 amount, uint256 wstEthToSeize);
+    event Liquidate(address indexed owner, address indexed liquidator, uint amount, uint wstEthToSeize, uint fee);
 
     constructor(
         FUSD    _fusd,
@@ -199,14 +200,18 @@ contract Manager is ERC4626, Owned {
             wstEthToSeize = wstEthBalance;
         }
 
-        minted[owner]   = debt - amount;
+        uint feeInWstEth      = wstEthToSeize.mulDivDown(LIQUIDATION_FEE_BPS, 10_000);
+        uint netWstEthToSeize = wstEthToSeize - feeInWstEth;
+
+        minted  [owner] = debt - amount;
         deposits[owner] = wstEthBalance - wstEthToSeize;
 
         fusd.burn(msg.sender, amount);
 
-        asset.safeTransfer(receiver, wstEthToSeize);
+        asset.safeTransfer(receiver   , netWstEthToSeize);
+        asset.safeTransfer(feeReceiver, feeInWstEth);
 
-        emit Liquidate(owner, msg.sender, amount, wstEthToSeize);
+        emit Liquidate(owner, msg.sender, amount, wstEthToSeize, feeInWstEth);
     }
 
     function setFeeReceiver(address _feeReceiver) external onlyOwner {
