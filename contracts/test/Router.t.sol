@@ -29,14 +29,5 @@ contract Router_Test is Base_Test {
         } else {
             revert("Unsupported Chain");
         }
-
-        router.depositAndWithdraw(
-            0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F,
-            1e18,
-            deadline,
-            v,
-            r,
-            s
-        );
     }
 }

@@ -157,9 +157,9 @@ contract Manager is ERC4626, Owned {
         fusd.mint(receiver, amount);
     }
 
-    function burnFUSD(uint amount, address owner, address receiver) external harvestBefore {
+    function burnFUSD(uint amount, address owner) external harvestBefore {
         require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
-        fusd.burn(receiver, amount);
+        fusd.burn(owner, amount);
         minted[owner] -= amount;
     }
 
