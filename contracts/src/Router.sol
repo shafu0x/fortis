@@ -39,7 +39,7 @@ contract Router {
 
     constructor(Manager _manager) {
         manager = _manager;
-        oracle  = manager.oracle();
+        oracle  = manager.assetOracle();
         asset   = manager.asset();
     }
 

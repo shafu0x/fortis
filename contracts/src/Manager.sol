@@ -28,7 +28,8 @@ contract Manager is ERC4626, Owned {
 
     FUSD    public immutable fusd;
     IWstETH public immutable wstETH;
-    IOracle public immutable oracle;
+    IOracle public immutable assetOracle;
+    IOracle public immutable wstEth2stEthOracle;
 
     address public feeReceiver;
 
@@ -50,17 +51,19 @@ contract Manager is ERC4626, Owned {
     constructor(
         FUSD    _fusd,
         IWstETH _wstETH,
-        IOracle _oracle,
+        IOracle _assetOracle,
+        IOracle _wstEth2stEthOracle,
         address _feeReceiver
     ) Owned(msg.sender) 
       ERC4626(ERC20(address(_wstETH)), "Fortis wstETH", "fwstETH") {
-        fusd        = _fusd;
-        wstETH      = _wstETH;
-        oracle      = _oracle;
-        feeReceiver = _feeReceiver;
+        fusd               = _fusd;
+        wstETH             = _wstETH;
+        assetOracle        = _assetOracle;
+        wstEth2stEthOracle = _wstEth2stEthOracle;
+        feeReceiver        = _feeReceiver;
 
         lastVaultBalanceWstETH = wstETH.balanceOf(address(this));
-        lastStEthPerWstEth     = wstETH.stEthPerToken();
+        lastStEthPerWstEth     = wstEth2stEth();
     }
 
     modifier harvestBefore() {
@@ -171,8 +174,14 @@ contract Manager is ERC4626, Owned {
         return totalValue.divWadDown(_minted);
     }
 
-    function assetPrice() public view returns (uint256) {
-        (, int256 answer,, uint256 updatedAt,) = oracle.latestRoundData();
+    function assetPrice() public view returns (uint) {
+        (, int256 answer,, uint256 updatedAt,) = assetOracle.latestRoundData();
+        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("Stale data");
+        return answer.toUint256();
+    }
+
+    function wstEth2stEth() public view returns (uint) {
+        (, int256 answer,, uint256 updatedAt,) = wstEth2stEthOracle.latestRoundData();
         if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("Stale data");
         return answer.toUint256();
     }

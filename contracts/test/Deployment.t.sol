@@ -7,6 +7,7 @@ import {Base_Test} from "./Base.t.sol";
 
 contract Deployment_Test is Base_Test {
     function test_deployment() external {
-        assertTrue(manager.assetPrice() != 0);
+        assertTrue(manager.assetPrice()   != 0);
+        assertTrue(manager.wstEth2stEth() != 0);
     }
 }

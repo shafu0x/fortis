@@ -16,7 +16,8 @@ import {Oracle_Mock} from "../mocks/Oracle_Mock.sol";
 
 contract Deploy is Script, Parameters {
     IWstETH wsteth;
-    IOracle oracle;
+    IOracle assetOracle;
+    IOracle wstEth2stEthOracle;
     Router  router;
 
     function setUp() public {
@@ -24,14 +25,16 @@ contract Deploy is Script, Parameters {
         console.log("Deploying on Chain:", block.chainid);
 
         if (chainId == 10) {
-            wsteth = IWstETH(OPTIMISM_WSTETH);
-            oracle = IOracle(OPTIMISM_ORACLE_WSTETH_USD);
+            wsteth             = IWstETH(OPTIMISM_WSTETH);
+            assetOracle        = IOracle(OPTIMISM_ORACLE_WSTETH_USD);
+            wstEth2stEthOracle = IOracle(OPTIMISM_ORACLE_WSTETH_STETH);
 
             vm.createSelectFork(vm.envString("OPTIMISM_INFURA_URL"));
             vm.rollFork        (OPTIMISM_FORK_BLOCK_NUMBER);
         } else if (chainId == 31337) {
-            wsteth = IWstETH(address(new WstETH_Mock()));
-            oracle = new Oracle_Mock(1000e8);
+            wsteth             = IWstETH(address(new WstETH_Mock()));
+            assetOracle        = new Oracle_Mock(1000e8);
+            wstEth2stEthOracle = new Oracle_Mock(1000e8);
         } else {
             revert("Unsupported Chain");
         }
@@ -47,7 +50,8 @@ contract Deploy is Script, Parameters {
         Manager manager = new Manager(
             fUSD,
             wsteth, 
-            oracle,
+            assetOracle,
+            wstEth2stEthOracle,
             address(0)
         );
 
