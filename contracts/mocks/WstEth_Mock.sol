@@ -4,6 +4,8 @@ pragma solidity =0.8.26;
 import {IWstETH} from "../interfaces/IWstETH.sol";
 
 contract WstETH_Mock is IWstETH {
+    uint public stEthPerToken;
+
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
@@ -199,7 +201,7 @@ contract WstETH_Mock is IWstETH {
         emit Transfer(from, address(0), amount);
     }
 
-    function stEthPerToken() external view returns (uint256) {
+    function setStEthPerToken() external view returns (uint256) {
         return 1e18;
     }
 }
