@@ -3,9 +3,10 @@ pragma solidity =0.8.26;
 
 import "forge-std/src/Test.sol";
 
+import {ERC20} from "solmate/src/tokens/ERC20.sol";
+
 import {Manager} from "./Manager.sol";
 import {IOracle} from "../interfaces/IOracle.sol";
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
 
 struct LockParams {
     address owner;
