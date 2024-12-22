@@ -50,7 +50,8 @@ contract Deploy is Script, Parameters {
             address(0)
         );
 
-        fUSD.transferOwnership(address(manager));
+        fUSD.   transferOwnership(address(manager));
+        manager.transferOwnership(OWNER);
 
         router = new Router(manager);
 

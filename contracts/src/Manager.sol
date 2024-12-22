@@ -8,17 +8,19 @@ import {SafeTransferLib}   from "solmate/src/utils/SafeTransferLib.sol";
 import {SafeCast}          from "@openzeppelin/utils/math/SafeCast.sol";
 import {FixedPointMathLib} from "solmate/src/utils/FixedPointMathLib.sol";
 import {ERC20}             from "solmate/src/tokens/ERC20.sol";
+import {Owned}             from "solmate/src/auth/Owned.sol";
 
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IWstETH} from "../interfaces/IWstETH.sol";
 import {FUSD}    from "./FUSD.sol";
 
-contract Manager is ERC4626 {
+contract Manager is ERC4626, Owned {
     using SafeTransferLib   for ERC20;
     using SafeCast          for int256;
     using FixedPointMathLib for uint256;
 
     uint public constant MIN_COLLAT_RATIO        = 1.3e18;   // 130%
+    uint public constant WITHDRAWAL_FEE_BPS      = 10;       // 0.1%
     uint public constant PERFORMANCE_FEE_BPS     = 1;        // 0.01%
     uint public constant LIQUIDATION_PENALTY_BPS = 1100;     // 110%
     uint public constant STALE_DATA_TIMEOUT      = 24 hours;
@@ -26,7 +28,8 @@ contract Manager is ERC4626 {
     FUSD    public immutable fusd;
     ERC20   public immutable wstETH;
     IOracle public immutable oracle;
-    address public immutable feeReceiver;
+
+    address public feeReceiver;
 
     uint public lastVaultBalanceWstETH;
     uint public lastStEthPerWstEth;
@@ -48,7 +51,8 @@ contract Manager is ERC4626 {
         ERC20   _wstETH,
         IOracle _oracle,
         address _feeReceiver
-    ) ERC4626(_wstETH, "Fortis wstETH", "fwstETH") {
+    ) Owned(msg.sender) 
+      ERC4626(_wstETH, "Fortis wstETH", "fwstETH") {
         fusd        = _fusd;
         wstETH      = _wstETH;
         oracle      = _oracle;
@@ -132,11 +136,17 @@ contract Manager is ERC4626 {
     }
 
     function _withdraw(uint assets, uint shares, address owner, address receiver) internal {
-        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
-        _burn(owner, shares);
-        asset.safeTransfer(receiver, assets);
-
+        uint fee         = assets.mulDivDown(WITHDRAWAL_FEE_BPS, 10_000);
+        uint netAssets   = assets - fee;
         deposits[owner] -= assets;
+
+        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
+
+        _burn(owner, shares);
+
+        asset.safeTransfer(feeReceiver, fee);
+        asset.safeTransfer(receiver   , netAssets);
+
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
@@ -197,6 +207,10 @@ contract Manager is ERC4626 {
         asset.safeTransfer(receiver, wstEthToSeize);
 
         emit Liquidate(owner, msg.sender, amount, wstEthToSeize);
+    }
+
+    function setFeeReceiver(address _feeReceiver) external onlyOwner {
+        feeReceiver = _feeReceiver;
     }
 
     function _harvestYield() internal {
