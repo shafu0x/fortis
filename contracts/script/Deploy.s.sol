@@ -30,7 +30,7 @@ contract Deploy is Script, Parameters {
             vm.createSelectFork(vm.envString("OPTIMISM_INFURA_URL"));
             vm.rollFork        (OPTIMISM_FORK_BLOCK_NUMBER);
         } else if (chainId == 31337) {
-            wsteth = new WstETH_Mock();
+            wsteth = IWstETH(address(new WstETH_Mock()));
             oracle = new Oracle_Mock(1000e8);
         } else {
             revert("Unsupported Chain");
