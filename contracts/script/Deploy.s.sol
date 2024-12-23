@@ -2,7 +2,8 @@
 pragma solidity =0.8.26;
 
 import "forge-std/src/Script.sol";
-import {ERC20} from "solmate/src/tokens/ERC20.sol";
+import {ERC20}   from "solmate/src/tokens/ERC20.sol";
+import {Create2} from "@openzeppelin/utils/Create2.sol";
 
 import {FUSD}        from "../src/FUSD.sol";
 import {Manager}     from "../src/Manager.sol";
@@ -19,10 +20,15 @@ contract Deploy is Script, Parameters {
     IOracle assetOracle;
     IOracle wstEth2stEthOracle;
     Router  router;
+    
+    bytes32 public constant FORTIS_SALT  = keccak256("FORTIS_SALT");
+    bytes32 public constant FUSD_SALT    = keccak256("FUSD_SALT");
+    bytes32 public constant MANAGER_SALT = keccak256("MANAGER_SALT");
+    bytes32 public constant ROUTER_SALT  = keccak256("ROUTER_SALT");
 
     function setUp() public {
         uint chainId = block.chainid;
-        console.log("Deploying on Chain:", block.chainid);
+        console.log("Deploying on Chain:", chainId);
 
         if (chainId == 10) {
             wsteth             = IWstETH(OPTIMISM_WSTETH);
@@ -45,20 +51,46 @@ contract Deploy is Script, Parameters {
 
         vm.startBroadcast(); // ----------------------
 
-        Fortis  fortis  = new Fortis();
-        FUSD    fUSD    = new FUSD();
-        Manager manager = new Manager(
-            fUSD,
-            wsteth, 
-            assetOracle,
-            wstEth2stEthOracle,
-            address(0)
+        Fortis fortis = Fortis(
+            Create2.deploy(
+                0,
+                FORTIS_SALT,
+                type(Fortis).creationCode
+            )
         );
 
-        fUSD.   transferOwnership(address(manager));
-        manager.transferOwnership(OWNER);
+        FUSD fUSD = FUSD(
+            Create2.deploy(
+                0,
+                FUSD_SALT,
+                abi.encodePacked(type(FUSD).creationCode, abi.encode(OWNER))
+            )
+        );
 
-        router = new Router(manager);
+        Manager manager = Manager(
+            Create2.deploy(
+                0,
+                MANAGER_SALT,
+                abi.encodePacked(
+                    type(Manager).creationCode,
+                    abi.encode(
+                        address(fUSD),
+                        address(wsteth),
+                        address(assetOracle),
+                        address(wstEth2stEthOracle),
+                        OWNER
+                    )
+                )
+            )
+        );
+
+        Router router = Router(
+            Create2.deploy(
+                0,
+                ROUTER_SALT,
+                abi.encodePacked(type(Router).creationCode, abi.encode(address(manager)))
+            )
+        );
 
         vm.stopBroadcast(); // ----------------------------
 

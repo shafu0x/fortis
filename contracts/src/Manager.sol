@@ -53,14 +53,14 @@ contract Manager is ERC4626, Owned {
         IWstETH _wstETH,
         IOracle _assetOracle,
         IOracle _wstEth2stEthOracle,
-        address _feeReceiver
-    ) Owned(msg.sender) 
+        address _owner
+    ) Owned(_owner) 
       ERC4626(ERC20(address(_wstETH)), "Fortis wstETH", "fwstETH") {
         fusd               = _fusd;
         wstETH             = _wstETH;
         assetOracle        = _assetOracle;
         wstEth2stEthOracle = _wstEth2stEthOracle;
-        feeReceiver        = _feeReceiver;
+        feeReceiver        = _owner;
 
         lastVaultBalanceWstETH = wstETH.balanceOf(address(this));
         lastStEthPerWstEth     = wstEth2stEth();
