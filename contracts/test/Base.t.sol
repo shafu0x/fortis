@@ -28,4 +28,8 @@ contract Base_Test is Test, Parameters {
         vm.store(address(manager), keccak256(abi.encode(user, UNLOCKED_SLOT)),  bytes32(uint256(1))); 
         vm.store(address(manager), keccak256(abi.encode(user, DELEGATES_SLOT)), bytes32(uint256(uint160(delegate)))); 
     }
+
+    function setOraclePrice() public {
+
+    }
 }
