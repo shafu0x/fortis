@@ -11,6 +11,8 @@ contract Router_Test is Base_Test {
         bytes32 r;
         bytes32 s;
 
+        console.log("Manager Address", address(manager));
+
         // TODO: give the manager a deterministic address
         if (address(manager) != 0xA8452Ec99ce0C64f20701dB7dD3abDb607c00496) {
             return;
