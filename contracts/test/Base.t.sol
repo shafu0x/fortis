@@ -11,6 +11,8 @@ import {Router}     from "../src/Router.sol";
 import {Parameters} from "../Parameters.sol";
 
 contract Base_Test is Test, Parameters {
+    using stdStorage for StdStorage;
+
     uint UNLOCKED_SLOT = 10; 
     uint DELEGATES_SLOT = 11; 
 
@@ -25,8 +27,19 @@ contract Base_Test is Test, Parameters {
     }
 
     function unlock(address user, address delegate) public {
-        vm.store(address(manager), keccak256(abi.encode(user, UNLOCKED_SLOT)),  bytes32(uint256(1))); 
-        vm.store(address(manager), keccak256(abi.encode(user, DELEGATES_SLOT)), bytes32(uint256(uint160(delegate)))); 
+        stdstore
+            .target(address(manager))
+            .sig("unlocked(address)")
+            .with_key(user)
+            .depth(0)
+            .checked_write(true);
+
+        stdstore
+            .target(address(manager))
+            .sig("delegates(address)")
+            .with_key(user)
+            .depth(0)
+            .checked_write(delegate);
     }
 
     function setOraclePrice() public {
