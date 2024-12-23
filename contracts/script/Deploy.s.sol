@@ -55,7 +55,7 @@ contract Deploy is Script, Parameters {
             Create2.deploy(
                 0,
                 FORTIS_SALT,
-                type(Fortis).creationCode
+                abi.encodePacked(type(FUSD).creationCode, abi.encode(OWNER))
             )
         );
 
