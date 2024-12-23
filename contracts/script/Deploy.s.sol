@@ -19,7 +19,6 @@ contract Deploy is Script, Parameters {
     IWstETH wsteth;
     IOracle assetOracle;
     IOracle wstEth2stEthOracle;
-    Router  router;
     
     bytes32 public constant FORTIS_SALT  = keccak256("FORTIS_SALT");
     bytes32 public constant FUSD_SALT    = keccak256("FUSD_SALT");

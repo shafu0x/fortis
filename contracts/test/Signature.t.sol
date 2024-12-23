@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.26;
 
-import {Base_Test} from "./Base.t.sol";
 import "forge-std/src/Test.sol";
+
+import {Base_Test} from "./Base.t.sol";
 
 contract Router_Test is Base_Test {
     function test_batching() external {
@@ -10,6 +11,8 @@ contract Router_Test is Base_Test {
         uint8   v;
         bytes32 r;
         bytes32 s;
+
+        console.log("Manager Address", address(manager));
 
         // TODO: give the manager a deterministic address
         if (address(manager) != 0xA8452Ec99ce0C64f20701dB7dD3abDb607c00496) {
