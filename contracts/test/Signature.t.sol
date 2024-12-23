@@ -14,6 +14,23 @@ contract Router_Test is Base_Test {
 
         console.log("Manager Address", address(manager));
 
+        console.log("xXXXX");
+        console.logBytes32(vm.load(address(manager), bytes32(uint(7))));
+        vm.store(address(manager), bytes32(uint(7)), bytes32(uint(1)));
+        console.log(manager.feeReceiver());
+
+        address user = address(0x1234);
+
+        uint256 mappingSlot = 10; // Replace with actual slot for `unlocked`
+
+        // Calculate the storage key for the mapping
+        bytes32 storageKey = keccak256(abi.encode(user, mappingSlot));
+
+        // Use vm.store to set the mapping value
+        vm.store(address(manager), storageKey, bytes32(uint256(1))); // 1 == true
+
+        console.log(manager.unlocked(user));
+
         // TODO: give the manager a deterministic address
         if (address(manager) != 0xA8452Ec99ce0C64f20701dB7dD3abDb607c00496) {
             return;

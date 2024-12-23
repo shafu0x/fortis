@@ -10,6 +10,7 @@ contract Deployment_Test is Base_Test {
         assertTrue(manager.assetPrice()   != 0);
         assertTrue(manager.wstEth2stEth() != 0);
         assertTrue(manager.owner() == OWNER);
+        assertTrue(manager.feeReceiver() == OWNER);
         assertTrue(fUSD.   owner() == OWNER);
     }
 }
