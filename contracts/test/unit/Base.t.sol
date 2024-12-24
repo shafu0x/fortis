@@ -48,8 +48,14 @@ contract Base_Test is Test, Parameters {
             .checked_write(delegate);
     }
 
-    modifier hasAssets(address recipient, uint amount) {
+    modifier giveAssets(address recipient, uint amount) {
         deal(address(manager.asset()), recipient, 10e18);
         _;
+    }
+
+    modifier prank(address user) {
+        vm.startPrank(user);
+        _;
+        vm.stopPrank();
     }
 }
