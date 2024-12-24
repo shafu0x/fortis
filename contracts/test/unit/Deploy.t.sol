@@ -9,8 +9,8 @@ contract Deployment_Test is Base_Test {
     function test_deployment() external view {
         assertTrue(manager.assetPrice()   != 0);
         assertTrue(manager.wstEth2stEth() != 0);
-        assertTrue(manager.owner()       == OWNER);
-        assertTrue(manager.feeReceiver() == OWNER);
-        assertTrue(fUSD.   owner()       == OWNER);
+        assertEq(manager.owner()      , OWNER);
+        assertEq(manager.feeReceiver(), OWNER);
+        assertEq(fUSD.owner(), address(manager));
     }
 }

@@ -5,7 +5,7 @@ import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {Owned} from "solmate/src/auth/Owned.sol";
 
 contract FUSD is Owned, ERC20("Fortis USD", "fUSD", 18) {
-    constructor(address _owner) Owned(_owner) {}
+    constructor() Owned(msg.sender) {}
     function mint(address to, uint256 amount) external onlyOwner {
         _mint(to, amount);
     }

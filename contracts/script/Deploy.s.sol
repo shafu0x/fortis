@@ -51,7 +51,7 @@ contract Deploy is Script, Parameters {
         vm.startBroadcast(); // ----------------------
 
         Fortis  fortis  = new Fortis(OWNER);
-        FUSD    fUSD    = new FUSD(OWNER);
+        FUSD    fUSD    = new FUSD();
         Manager manager = new Manager(
             fUSD,
             wsteth,
@@ -61,6 +61,8 @@ contract Deploy is Script, Parameters {
         );
 
         Router router = new Router(manager);
+
+        fUSD.transferOwnership(address(manager));
 
         vm.stopBroadcast(); // ----------------------------
 
