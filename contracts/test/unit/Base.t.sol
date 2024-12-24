@@ -24,7 +24,7 @@ contract Base_Test is Test, Parameters {
     address alice;
     address bob;
 
-    function setUp() external {
+    function setUp() public virtual {
         Deploy deploy = new Deploy();
         (fortis, fUSD, manager, router) = deploy.run();
 
