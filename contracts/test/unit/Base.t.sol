@@ -89,7 +89,7 @@ contract Base_Test is Test, Parameters {
     }
 
     modifier giveAssets(address recipient, uint amount) {
-        deal(address(manager.asset()), recipient, 10e18);
+        deal(address(manager.asset()), recipient, amount);
         _;
     }
 
