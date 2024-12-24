@@ -19,6 +19,8 @@ contract Unlock_Test is Base_Test {
 
     function setUp() public override {
         super.setUp();
+
+        // Signature is generated with a js script
         unlockParams = UnlockParams({
             sigOwner: 0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F,
             delegate: address(router),
