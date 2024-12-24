@@ -78,4 +78,18 @@ contract Deposit_Test is Base_Test {
 
         assertEq(manager.deposits(alice), 10e18);
     }
+
+    function test_mint(uint amount) 
+        public 
+            giveAssets(alice, amount) 
+            startPrank(alice) 
+    {
+        vm.assume(amount != 0);
+        assertEq(manager.deposits(alice), 0);
+
+        manager.asset().approve(address(manager), amount);
+        manager.mint(amount, alice);
+
+        assertEq(manager.deposits(alice), amount);
+    }
 }
