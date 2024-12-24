@@ -5,7 +5,7 @@ import "forge-std/src/Test.sol";
 
 import {Base_Test} from "./Base.t.sol";
 
-contract Manager_Test is Base_Test {
+contract Deposit_Test is Base_Test {
     function test_deposit() 
         public 
             giveAssets(alice, 10e18) 

@@ -95,7 +95,7 @@ contract Manager is ERC4626, Owned {
         asset.safeTransferFrom(msg.sender, address(this), assets);
         _mint(receiver, shares);
 
-        deposits[receiver] += assets;
+        deposits[receiver] += assets; // Only diff to the solmate ERC4626
         emit Deposit(msg.sender, receiver, assets, shares);
     }
 

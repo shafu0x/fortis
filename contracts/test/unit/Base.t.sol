@@ -13,8 +13,8 @@ import {Parameters} from "../../Parameters.sol";
 contract Base_Test is Test, Parameters {
     using stdStorage for StdStorage;
 
-    uint UNLOCKED_SLOT = 10; 
-    uint DELEGATES_SLOT = 11; 
+    address constant MANAGER_DETERMINISTIC_ADDRESS = 0x1000000000000000000000000000000000000013;
+    address constant ROUTER_DETERMINISTIC_ADDRESS  = 0x1000000000000000000000000000000000000014;
 
     Fortis  public fortis;
     FUSD    public fUSD;
@@ -27,6 +27,30 @@ contract Base_Test is Test, Parameters {
     function setUp() external {
         Deploy deploy = new Deploy();
         (fortis, fUSD, manager, router) = deploy.run();
+
+        // we give the manager a deterministic address,
+        // so we can generate a correct signature once.
+        deployCodeTo(
+            "Manager.sol:Manager",
+            abi.encode(
+                address(fUSD),
+                address(manager.asset()),
+                address(manager.assetOracle()),
+                address(manager.wstEth2stEthOracle()),
+                OWNER
+            ),
+            MANAGER_DETERMINISTIC_ADDRESS
+        );
+
+        manager = Manager(MANAGER_DETERMINISTIC_ADDRESS);
+
+        deployCodeTo(
+            "Router.sol:Router",
+            abi.encode(address(manager)),
+            ROUTER_DETERMINISTIC_ADDRESS
+        );
+
+        router = Router(ROUTER_DETERMINISTIC_ADDRESS);
 
         alice = makeAddr("alice");
         bob   = makeAddr("bob");
@@ -56,6 +80,16 @@ contract Base_Test is Test, Parameters {
     modifier prank(address user) {
         vm.startPrank(user);
         _;
+        vm.stopPrank();
+    }
+
+    modifier depositTo(address owner, address recipient, uint amount) {
+        vm.startPrank(owner);
+
+        manager.asset().approve(address(manager), 10e18);
+        manager.deposit(amount, recipient);
+        _;
+
         vm.stopPrank();
     }
 }
