@@ -10,7 +10,7 @@ contract Manager_Test is Base_Test {
         public 
             giveAssets(alice, 10e18) 
             prank(alice) 
-{
+    {
         manager.asset().approve(address(manager), 10e18);
         manager.deposit(10e18, address(this));
     }
