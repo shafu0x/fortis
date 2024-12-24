@@ -14,6 +14,7 @@ contract Unlock_Test is Base_Test {
         unlock()
     {
         assertTrue(manager.isUnlocked(sigOwner));
+        assertTrue(manager.delegates(sigOwner) == delegate);
     }
 
      function test_unlock_fail_delegateNotSender() external {
@@ -51,6 +52,8 @@ contract Unlock_Test is Base_Test {
         lock()
     {
         assertFalse(manager.isUnlocked(sigOwner));
+        assertFalse(manager.unlocked(sigOwner));
+        assertTrue (manager.delegates(sigOwner) == address(0));
     }
 
     function test_lock_fail_notDelegate() external
