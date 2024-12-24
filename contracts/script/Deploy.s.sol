@@ -49,9 +49,8 @@ contract Deploy is Script, Parameters {
 
         vm.startBroadcast(); // ----------------------
 
-        Fortis fortis = new Fortis(OWNER);
-        FUSD   fUSD   = new FUSD(OWNER);
-
+        Fortis  fortis  = new Fortis(OWNER);
+        FUSD    fUSD    = new FUSD(OWNER);
         Manager manager = new Manager(
             fUSD,
             wsteth,

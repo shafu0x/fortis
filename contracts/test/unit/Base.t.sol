@@ -21,9 +21,15 @@ contract Base_Test is Test, Parameters {
     Manager public manager;
     Router  public router;
 
+    address alice;
+    address bob;
+
     function setUp() external {
         Deploy deploy = new Deploy();
         (fortis, fUSD, manager, router) = deploy.run();
+
+        alice = makeAddr("alice");
+        bob   = makeAddr("bob");
     }
 
     function unlock(address user, address delegate) public {
@@ -42,7 +48,8 @@ contract Base_Test is Test, Parameters {
             .checked_write(delegate);
     }
 
-    function setOraclePrice() public {
-
+    modifier hasAssets(address recipient, uint amount) {
+        deal(address(manager.asset()), recipient, 10e18);
+        _;
     }
 }
