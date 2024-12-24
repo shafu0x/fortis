@@ -256,6 +256,9 @@ contract Manager is ERC4626, Owned {
         lastStEthPerWstEth = currentRatio;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                                  LOCK
+    //////////////////////////////////////////////////////////////*/
     function unlock(
         address owner,
         address delegate,
@@ -300,9 +303,5 @@ contract Manager is ERC4626, Owned {
 
     function isUnlocked(address owner) public view returns (bool) {
         return unlocked[owner] && delegates[owner] == msg.sender;
-    }
-
-    function increaseNonce() external {
-        nonces[msg.sender]++;
     }
 }

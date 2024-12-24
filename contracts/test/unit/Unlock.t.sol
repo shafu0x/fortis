@@ -6,6 +6,9 @@ import "forge-std/src/Test.sol";
 import {Base_Test} from "./Base.t.sol";
 
 contract Unlock_Test is Base_Test {
+    /*//////////////////////////////////////////////////////////////
+                                 UNLOCK
+    //////////////////////////////////////////////////////////////*/
     function test_unlock() external 
         startPrank(delegate)
         unlock()
@@ -39,6 +42,9 @@ contract Unlock_Test is Base_Test {
         );
     }
 
+    /*//////////////////////////////////////////////////////////////
+                                  LOCK
+    //////////////////////////////////////////////////////////////*/
     function test_lock() external
         startPrank(delegate)
         unlock()
@@ -55,5 +61,4 @@ contract Unlock_Test is Base_Test {
         vm.expectRevert("NOT_DELEGATE");
         manager.lock(sigOwner);
     }
-
 }
