@@ -51,7 +51,7 @@ contract Base_Test is Test, Parameters {
 
         manager = Manager(MANAGER_DETERMINISTIC_ADDRESS);
 
-        // TODO: make fUSD and Fortis deployment deterministic
+        // TODO: refactor this
         vm.prank(fUSD.owner());
         fUSD.transferOwnership(address(manager));
 
