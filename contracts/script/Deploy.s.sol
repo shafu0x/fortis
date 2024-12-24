@@ -26,7 +26,6 @@ contract Deploy is Script, Parameters {
 
     function setUp() public {
         uint chainId = block.chainid;
-        console.log("Deploying on Chain:", chainId);
 
         if (chainId == 10) {
             wsteth             = IWstETH(OPTIMISM_WSTETH);
