@@ -3,7 +3,6 @@ pragma solidity =0.8.26;
 
 import "forge-std/src/Script.sol";
 import {ERC20}   from "solmate/src/tokens/ERC20.sol";
-import {Create2} from "@openzeppelin/utils/Create2.sol";
 
 import {FUSD}        from "../src/FUSD.sol";
 import {Manager}     from "../src/Manager.sol";
@@ -50,46 +49,18 @@ contract Deploy is Script, Parameters {
 
         vm.startBroadcast(); // ----------------------
 
-        Fortis fortis = Fortis(
-            Create2.deploy(
-                0,
-                FORTIS_SALT,
-                abi.encodePacked(type(FUSD).creationCode, abi.encode(OWNER))
-            )
+        Fortis fortis = new Fortis(OWNER);
+        FUSD   fUSD   = new FUSD(OWNER);
+
+        Manager manager = new Manager(
+            fUSD,
+            wsteth,
+            assetOracle,
+            wstEth2stEthOracle,
+            OWNER
         );
 
-        FUSD fUSD = FUSD(
-            Create2.deploy(
-                0,
-                FUSD_SALT,
-                abi.encodePacked(type(FUSD).creationCode, abi.encode(OWNER))
-            )
-        );
-
-        Manager manager = Manager(
-            Create2.deploy(
-                0,
-                MANAGER_SALT,
-                abi.encodePacked(
-                    type(Manager).creationCode,
-                    abi.encode(
-                        address(fUSD),
-                        address(wsteth),
-                        address(assetOracle),
-                        address(wstEth2stEthOracle),
-                        OWNER
-                    )
-                )
-            )
-        );
-
-        Router router = Router(
-            Create2.deploy(
-                0,
-                ROUTER_SALT,
-                abi.encodePacked(type(Router).creationCode, abi.encode(address(manager)))
-            )
-        );
+        Router router = new Router(manager);
 
         vm.stopBroadcast(); // ----------------------------
 
