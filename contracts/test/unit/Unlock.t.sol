@@ -7,18 +7,10 @@ import {Base_Test} from "./Base.t.sol";
 
 contract Unlock_Test is Base_Test {
     function test_unlock() external 
-        prank(delegate)
+        startPrank(delegate)
         unlock()
     {
         assertTrue(manager.isUnlocked(sigOwner));
-    }
-
-    function test_unlockAndLock() external
-        prank(delegate)
-        unlock()
-        lock()
-    {
-        assertFalse(manager.isUnlocked(sigOwner));
     }
 
      function test_unlock_fail_delegateNotSender() external {
@@ -33,7 +25,9 @@ contract Unlock_Test is Base_Test {
         );
     }
 
-     function test_unlock_fail_invalidSignature() external prank(delegate) {
+     function test_unlock_fail_invalidSignature() external 
+        startPrank(delegate) 
+    {
         vm.expectRevert("INVALID_SIGNATURE");
         manager.unlock(
             sigOwner,
@@ -44,4 +38,22 @@ contract Unlock_Test is Base_Test {
             s
         );
     }
+
+    function test_lock() external
+        startPrank(delegate)
+        unlock()
+        lock()
+    {
+        assertFalse(manager.isUnlocked(sigOwner));
+    }
+
+    function test_lock_fail_notDelegate() external
+        startPrank(delegate)
+        unlock()
+        stopPrank()
+    {
+        vm.expectRevert("NOT_DELEGATE");
+        manager.lock(sigOwner);
+    }
+
 }

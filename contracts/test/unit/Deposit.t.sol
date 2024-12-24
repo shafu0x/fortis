@@ -9,7 +9,7 @@ contract Deposit_Test is Base_Test {
     function test_deposit() 
         public 
             giveAssets(alice, 10e18) 
-            prank(alice) 
+            startPrank(alice) 
     {
         assertEq(manager.deposits(alice), 0);
 
@@ -22,7 +22,7 @@ contract Deposit_Test is Base_Test {
     function test_deposit_forBob() 
         public 
             giveAssets(alice, 10e18) 
-            prank(alice) 
+            startPrank(alice) 
     {
         assertEq(manager.deposits(bob), 0);
 

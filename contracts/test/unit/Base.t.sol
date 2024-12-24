@@ -93,10 +93,14 @@ contract Base_Test is Test, Parameters {
         _;
     }
 
-    modifier prank(address user) {
+    modifier startPrank(address user) {
         vm.startPrank(user);
         _;
+    }
+
+    modifier stopPrank() {
         vm.stopPrank();
+        _;
     }
 
     modifier depositTo(address owner, address recipient, uint amount) {
