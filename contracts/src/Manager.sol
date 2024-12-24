@@ -293,7 +293,7 @@ contract Manager is ERC4626, Owned {
 
     function lock(address owner) external {
         require(delegates[owner] == msg.sender, "NOT_DELEGATE");
-        require(unlocked[owner], "NOT_UNLOCKED");
+        require(unlocked [owner],               "NOT_UNLOCKED");
         unlocked [owner] = false;
         delegates[owner] = address(0);
     }

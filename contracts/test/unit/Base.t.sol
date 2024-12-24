@@ -24,6 +24,13 @@ contract Base_Test is Test, Parameters {
     address alice;
     address bob;
 
+    address sigOwner;
+    address delegate;
+    uint256 deadline;
+    uint8   v;
+    bytes32 r;
+    bytes32 s;
+
     function setUp() public virtual {
         Deploy deploy = new Deploy();
         (fortis, fUSD, manager, router) = deploy.run();
@@ -54,22 +61,31 @@ contract Base_Test is Test, Parameters {
 
         alice = makeAddr("alice");
         bob   = makeAddr("bob");
+
+        // Signature is generated with a js script
+        sigOwner = 0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F;
+        delegate = address(router);
+        deadline = 1735043499;
+        v        = 28;
+        r        = 0xd8082fd33957ca7a95edfc396bd7f60845feb0512be55eeabfb252bcc0990665;
+        s        = 0x3911714f04783c5dd4f31ed7502e1e4a21c7b4152ab9a4c1415ae2b7a6768925;
     }
 
-    function unlock(address user, address delegate) public {
-        stdstore
-            .target(address(manager))
-            .sig("unlocked(address)")
-            .with_key(user)
-            .depth(0)
-            .checked_write(true);
+    modifier unlock() {
+        manager.unlock(
+            sigOwner,
+            delegate,
+            deadline,
+            v,
+            r,
+            s
+        );
+        _;
+    }
 
-        stdstore
-            .target(address(manager))
-            .sig("delegates(address)")
-            .with_key(user)
-            .depth(0)
-            .checked_write(delegate);
+    modifier lock() {
+        manager.lock(sigOwner);
+        _;
     }
 
     modifier giveAssets(address recipient, uint amount) {
