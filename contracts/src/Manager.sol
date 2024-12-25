@@ -43,7 +43,7 @@ contract Manager is ERC4626, Owned {
         "Unlock(address owner,uint256 nonce,uint256 deadline,address delegate)"
     );
 
-    mapping(address => uint) public deposits;
+    mapping(address => uint) public deposited;
     mapping(address => uint) public minted;
 
     event Liquidate(address indexed owner, address indexed liquidator, uint amount, uint wstEthToSeize, uint fee);
@@ -95,7 +95,7 @@ contract Manager is ERC4626, Owned {
         asset.safeTransferFrom(msg.sender, address(this), assets);
         _mint(receiver, shares);
 
-        deposits[receiver] += assets; // Only diff to the solmate ERC4626
+        deposited[receiver] += assets; // Only diff to the solmate ERC4626
         emit Deposit(msg.sender, receiver, assets, shares);
     }
 
@@ -140,9 +140,9 @@ contract Manager is ERC4626, Owned {
     }
 
     function _withdraw(uint assets, uint shares, address owner, address receiver) internal {
-        uint fee         = assets.mulDivDown(WITHDRAWAL_FEE_BPS, 10_000);
-        uint netAssets   = assets - fee;
-        deposits[owner] -= assets;
+        uint fee          = assets.mulDivDown(WITHDRAWAL_FEE_BPS, 10_000);
+        uint netAssets    = assets - fee;
+        deposited[owner] -= assets;
 
         if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
 
@@ -170,7 +170,7 @@ contract Manager is ERC4626, Owned {
     function collatRatio(address owner) public view returns (uint) {
         uint _minted = minted[owner];
         if (_minted == 0) return type(uint).max;
-        uint totalValue = deposits[owner] * assetPrice() / 1e8;
+        uint totalValue = deposited[owner] * assetPrice() / 1e8;
         return totalValue.divWadDown(_minted);
     }
 
@@ -204,7 +204,7 @@ contract Manager is ERC4626, Owned {
             .mulDivDown(LIQUIDATION_PENALTY_BPS, 10000)
             .mulDivDown(1e8, price);
 
-        uint wstEthBalance = deposits[owner];
+        uint wstEthBalance = deposited[owner];
         if (wstEthToSeize > wstEthBalance) {
             wstEthToSeize = wstEthBalance;
         }
@@ -212,8 +212,8 @@ contract Manager is ERC4626, Owned {
         uint feeInWstEth      = wstEthToSeize.mulDivDown(LIQUIDATION_FEE_BPS, 10_000);
         uint netWstEthToSeize = wstEthToSeize - feeInWstEth;
 
-        minted  [owner] = debt - amount;
-        deposits[owner] = wstEthBalance - wstEthToSeize;
+        minted   [owner] = debt - amount;
+        deposited[owner] = wstEthBalance - wstEthToSeize;
 
         fusd.burn(msg.sender, amount);
 

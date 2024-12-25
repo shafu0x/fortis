@@ -14,12 +14,12 @@ contract Deposit_Test is Base_Test {
             giveAssets(alice, 10e18) 
             startPrank(alice) 
     {
-        assertEq(manager.deposits(alice), 0);
+        assertEq(manager.deposited(alice), 0);
 
         manager.asset().approve(address(manager), 10e18);
         manager.deposit(10e18, alice);
 
-        assertEq(manager.deposits(alice), 10e18);
+        assertEq(manager.deposited(alice), 10e18);
     }
 
     function test_deposit_fuzz(uint amount) 
@@ -28,12 +28,12 @@ contract Deposit_Test is Base_Test {
             startPrank(alice) 
     {
         vm.assume(amount != 0);
-        assertEq(manager.deposits(alice), 0);
+        assertEq(manager.deposited(alice), 0);
 
         manager.asset().approve(address(manager), amount);
         manager.deposit(amount, alice);
 
-        assertEq(manager.deposits(alice), amount);
+        assertEq(manager.deposited(alice), amount);
     }
 
     function test_deposit_forBob() 
@@ -41,12 +41,12 @@ contract Deposit_Test is Base_Test {
             giveAssets(alice, 10e18) 
             startPrank(alice) 
     {
-        assertEq(manager.deposits(bob), 0);
+        assertEq(manager.deposited(bob), 0);
 
         manager.asset().approve(address(manager), 10e18);
         manager.deposit(10e18, bob);
 
-        assertEq(manager.deposits(bob), 10e18);
+        assertEq(manager.deposited(bob), 10e18);
     }
 
     function test_deposit_fuzz_forBob(uint amount) 
@@ -55,12 +55,12 @@ contract Deposit_Test is Base_Test {
             startPrank(alice) 
     {
         vm.assume(amount != 0);
-        assertEq(manager.deposits(bob), 0);
+        assertEq(manager.deposited(bob), 0);
 
         manager.asset().approve(address(manager), amount);
         manager.deposit(amount, bob);
 
-        assertEq(manager.deposits(bob), amount);
+        assertEq(manager.deposited(bob), amount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -71,12 +71,12 @@ contract Deposit_Test is Base_Test {
             giveAssets(alice, 10e18) 
             startPrank(alice) 
     {
-        assertEq(manager.deposits(alice), 0);
+        assertEq(manager.deposited(alice), 0);
 
         manager.asset().approve(address(manager), 10e18);
         manager.mint(10e18, alice);
 
-        assertEq(manager.deposits(alice), 10e18);
+        assertEq(manager.deposited(alice), 10e18);
     }
 
     function test_mint(uint amount) 
@@ -85,11 +85,11 @@ contract Deposit_Test is Base_Test {
             startPrank(alice) 
     {
         vm.assume(amount != 0);
-        assertEq(manager.deposits(alice), 0);
+        assertEq(manager.deposited(alice), 0);
 
         manager.asset().approve(address(manager), amount);
         manager.mint(amount, alice);
 
-        assertEq(manager.deposits(alice), amount);
+        assertEq(manager.deposited(alice), amount);
     }
 }

@@ -80,10 +80,10 @@ contract Base_Test is Test, Parameters {
         Oracle_Mock(address(manager.assetOracle())).setPrice(price);
     }
 
-    function setDeposits(address user, uint amount) public {
+    function setDeposited(address user, uint amount) public {
         stdstore
             .target(address(manager))
-            .sig("deposits(address)")
+            .sig("deposited(address)")
             .with_key(user)
             .depth(0)
             .checked_write(amount);

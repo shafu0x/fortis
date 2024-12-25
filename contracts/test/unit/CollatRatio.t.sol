@@ -7,14 +7,14 @@ import {Base_Test} from "./Base.t.sol";
 
 contract CollatRatio_Test is Base_Test {
     function test_collatRatio() public {
-        setDeposits  (alice, 100e18);
         setAssetPrice(4_000e8);
+        setDeposited (alice, 100e18);
         setMinted    (alice, 250_000e18);
 
         assertEq(manager.collatRatio(alice), 1.6e18);
 
-        setDeposits  (alice, 100e18);
         setAssetPrice(3_500e8);
+        setDeposited (alice, 100e18);
         setMinted    (alice, 250_000e18);
 
         assertEq(manager.collatRatio(alice), 1.4e18);

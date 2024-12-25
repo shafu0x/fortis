@@ -9,15 +9,18 @@ contract Mint_Test is Base_Test {
     function test_mintFUSD() public 
         giveAssets(alice, 100e18) 
     {
+        setAssetPrice(4_000e8);
+
         vm.startPrank(alice);
-        // TODO: fix this test
+
         manager.asset().approve(address(manager), 100e18);
         manager.deposit(100e18, alice);
-        manager.mintFUSD(1e18, alice, alice);
+        manager.mintFUSD(250_000e18, alice, alice);
 
-        // console.log(manager.assetPrice());
-        setAssetPrice(66e8);
-        // console.log(manager.assetPrice());
+        assertEq(manager.deposited(alice),  100e18);
+        assertEq(manager.minted(alice),     250_000e18);
+        assertEq(manager.collatRatio(alice), 1.6e18);
+
         vm.stopPrank();
     }
 }
