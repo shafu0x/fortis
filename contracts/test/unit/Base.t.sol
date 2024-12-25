@@ -134,13 +134,9 @@ contract Base_Test is Test, Parameters {
     }
 
     modifier _depositTo(address owner, address recipient, uint amount) {
-        vm.startPrank(owner);
-
         manager.asset().approve(address(manager), amount);
         manager.deposit(amount, recipient);
         _;
-
-        vm.stopPrank();
     }
 
     modifier _setAssetPrice(int price) {
