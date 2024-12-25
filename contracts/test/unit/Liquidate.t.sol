@@ -16,4 +16,16 @@ contract Liquidate_Test is Base_Test {
     {
         manager.liquidate(alice, 200e18, address(this));
     }
+
+    function test_liquidate_fail_notUndercollaterized() public 
+        _giveAssets   (alice, 100e18) 
+        _setAssetPrice(4_000e8)
+        _startPrank   (alice)
+        _deposit      (1e18, alice)
+        _mintFUSD     (1000e18, alice)
+        _setAssetPrice(2_000e8)
+    {
+        vm.expectRevert("NOT_UNDERCOLLATERALIZED");
+        manager.liquidate(alice, 200e18, address(this));
+    }
 }
