@@ -125,7 +125,7 @@ contract Base_Test is Test, Parameters {
         vm.stopPrank();
         _;
     }
-    modifier _depositTo(address owner, address recipient, uint amount) {
+    modifier _depositTo(uint amount, address owner, address recipient) {
         manager.asset().approve(address(manager), amount);
         manager.deposit(amount, recipient);
         _;

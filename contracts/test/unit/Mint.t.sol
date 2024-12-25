@@ -10,12 +10,13 @@ contract Mint_Test is Base_Test {
         _giveAssets   (alice, 100e18) 
         _setAssetPrice(4_000e8)
         _startPrank   (alice)
-        _depositTo    (alice, alice, 100e18)
+        _depositTo    (100e18, alice, alice)
     {
         manager.mintFUSD(250_000e18, alice, alice);
 
-        assertEq(manager.deposited(alice),  100e18);
-        assertEq(manager.minted(alice),     250_000e18);
+        assertEq(fUSD.balanceOf(alice),      250_000e18);
+        assertEq(manager.deposited(alice),   100e18);
+        assertEq(manager.minted(alice),      250_000e18);
         assertEq(manager.collatRatio(alice), 1.6e18);
     }
 
@@ -24,10 +25,11 @@ contract Mint_Test is Base_Test {
         _startPrank   (delegate)
         _unlock       ()
         _setAssetPrice(4_000e8)
-        _depositTo    (delegate, sigOwner, 100e18)
+        _depositTo    (100e18, delegate, sigOwner)
     {
         manager.mintFUSD(250_000e18, sigOwner, address(this));
 
+        assertEq(fUSD.balanceOf(address(this)), 250_000e18);
         assertEq(manager.deposited(sigOwner),   100e18);
         assertEq(manager.minted(sigOwner),      250_000e18);
         assertEq(manager.collatRatio(sigOwner), 1.6e18);

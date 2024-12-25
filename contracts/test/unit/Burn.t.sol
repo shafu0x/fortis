@@ -10,7 +10,7 @@ contract Burn_Test is Base_Test {
         _giveAssets   (alice, 100e18) 
         _setAssetPrice(4_000e8)
         _startPrank   (alice)
-        _depositTo    (alice, alice, 100e18)
+        _depositTo    (100e18, alice, alice)
         _mintFUSD     (100e18, alice, alice)
     {
         manager.burnFUSD(80e18, alice);
@@ -22,7 +22,7 @@ contract Burn_Test is Base_Test {
         _giveAssets   (alice, 100e18) 
         _setAssetPrice(4_000e8)
         _startPrank   (alice)
-        _depositTo    (alice, alice, 100e18)
+        _depositTo    (100e18, alice, alice)
         _mintFUSD     (100e18, alice, alice)
     {
         manager.burnFUSD(100e18, alice);
@@ -35,11 +35,12 @@ contract Burn_Test is Base_Test {
         _setAssetPrice(4_000e8)
         _startPrank   (delegate)
         _unlock       ()
-        _depositTo    (delegate, sigOwner, 100e18)
+        _depositTo    (100e18, delegate, sigOwner)
         _mintFUSD     (100e18, sigOwner, sigOwner)
     {
         manager.burnFUSD(100e18, sigOwner);
 
-        assertEq(manager.minted(sigOwner), 0);
+        assertEq(manager.minted(sigOwner),             0);
+        assertEq(manager.wstETH().balanceOf(sigOwner), 0);
     }
 }
