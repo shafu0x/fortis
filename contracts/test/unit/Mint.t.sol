@@ -29,15 +29,12 @@ contract Mint_Test is Base_Test {
         _startPrank   (delegate)
         _unlock       ()
         _setAssetPrice(4_000e8)
+        _depositTo    (delegate, sigOwner, 100e18)
     {
-        manager.asset().approve(address(manager), 100e18);
-        manager.deposit(100e18, sigOwner);
         manager.mintFUSD(250_000e18, sigOwner, address(this));
 
         assertEq(manager.deposited(sigOwner),   100e18);
         assertEq(manager.minted(sigOwner),      250_000e18);
         assertEq(manager.collatRatio(sigOwner), 1.6e18);
-
-        vm.stopPrank();
     }
 }
