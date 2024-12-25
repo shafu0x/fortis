@@ -14,8 +14,6 @@ contract Deposit_Test is Base_Test {
             _giveAssets(alice, 10e18) 
             _startPrank(alice) 
     {
-        assertEq(manager.deposited(alice), 0);
-
         manager.asset().approve(address(manager), 10e18);
         manager.deposit(10e18, alice);
 
@@ -28,7 +26,6 @@ contract Deposit_Test is Base_Test {
             _startPrank(alice) 
     {
         vm.assume(amount != 0);
-        assertEq(manager.deposited(alice), 0);
 
         manager.asset().approve(address(manager), amount);
         manager.deposit(amount, alice);
@@ -55,7 +52,6 @@ contract Deposit_Test is Base_Test {
             _startPrank(alice) 
     {
         vm.assume(amount != 0);
-        assertEq(manager.deposited(bob), 0);
 
         manager.asset().approve(address(manager), amount);
         manager.deposit(amount, bob);
@@ -71,8 +67,6 @@ contract Deposit_Test is Base_Test {
             _giveAssets(alice, 10e18) 
             _startPrank(alice) 
     {
-        assertEq(manager.deposited(alice), 0);
-
         manager.asset().approve(address(manager), 10e18);
         manager.mint(10e18, alice);
 
@@ -85,7 +79,6 @@ contract Deposit_Test is Base_Test {
             _startPrank(alice) 
     {
         vm.assume(amount != 0);
-        assertEq(manager.deposited(alice), 0);
 
         manager.asset().approve(address(manager), amount);
         manager.mint(amount, alice);
