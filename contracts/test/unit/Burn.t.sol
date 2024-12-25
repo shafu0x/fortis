@@ -10,8 +10,8 @@ contract Burn_Test is Base_Test {
         _giveAssets   (alice, 100e18) 
         _setAssetPrice(4_000e8)
         _startPrank   (alice)
-        _depositTo    (100e18, alice, alice)
-        _mintFUSD     (100e18, alice, alice)
+        _deposit      (100e18, alice)
+        _mintFUSD     (100e18, alice)
     {
         manager.burnFUSD(80e18, alice);
 
@@ -22,8 +22,8 @@ contract Burn_Test is Base_Test {
         _giveAssets   (alice, 100e18) 
         _setAssetPrice(4_000e8)
         _startPrank   (alice)
-        _depositTo    (100e18, alice, alice)
-        _mintFUSD     (100e18, alice, alice)
+        _deposit      (100e18, alice)
+        _mintFUSD     (100e18, alice)
     {
         manager.burnFUSD(100e18, alice);
 
@@ -36,7 +36,7 @@ contract Burn_Test is Base_Test {
         _startPrank   (delegate)
         _unlock       ()
         _depositTo    (100e18, delegate, sigOwner)
-        _mintFUSD     (100e18, sigOwner, sigOwner)
+        _mintFUSD     (100e18, sigOwner)
     {
         manager.burnFUSD(100e18, sigOwner);
 

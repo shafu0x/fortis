@@ -125,6 +125,11 @@ contract Base_Test is Test, Parameters {
         vm.stopPrank();
         _;
     }
+    modifier _deposit(uint amount, address owner) {
+        manager.asset().approve(address(manager), amount);
+        manager.deposit(amount, owner);
+        _;
+    }
     modifier _depositTo(uint amount, address owner, address recipient) {
         manager.asset().approve(address(manager), amount);
         manager.deposit(amount, recipient);
@@ -142,8 +147,12 @@ contract Base_Test is Test, Parameters {
         setMinted(user, amount);
         _;
     }
-    modifier _mintFUSD(uint amount, address recipient, address _delegate) {
-        manager.mintFUSD(amount, recipient, _delegate);
+    modifier _mintFUSD(uint amount, address owner) {
+        manager.mintFUSD(amount, owner, owner);
+        _;
+    }
+    modifier _mintFUSDTo(uint amount, address owner, address receiver) {
+        manager.mintFUSD(amount, owner, receiver);
         _;
     }
 }

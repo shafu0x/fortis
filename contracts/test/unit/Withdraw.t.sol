@@ -9,7 +9,7 @@ contract Withdraw_Test is Base_Test {
     function test_withdraw() public 
         _giveAssets(alice, 100e18) 
         _startPrank(alice)
-        _depositTo (100e18, alice, alice)
+        _deposit   (100e18, alice)
     {
         manager.withdraw(50e18, alice, alice);
 
@@ -19,8 +19,8 @@ contract Withdraw_Test is Base_Test {
     function test_withdraw_afterMint() public 
         _giveAssets(alice, 100e18) 
         _startPrank(alice)
-        _depositTo (100e18, alice, alice)
-        _mintFUSD  (1e18, alice, alice)
+        _deposit   (100e18, alice)
+        _mintFUSD  (1e18, alice)
     {
         uint crBefore = manager.collatRatio(alice);
         manager.withdraw(50e18, alice, alice);
