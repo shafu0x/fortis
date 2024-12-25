@@ -10,8 +10,8 @@ contract Unlock_Test is Base_Test {
                                  UNLOCK
     //////////////////////////////////////////////////////////////*/
     function test_unlock() external 
-        startPrank(delegate)
-        unlock()
+        _startPrank(delegate)
+        _unlock()
     {
         assertTrue(manager.isUnlocked(sigOwner));
         assertTrue(manager.delegates(sigOwner) == delegate);
@@ -30,7 +30,7 @@ contract Unlock_Test is Base_Test {
     }
 
      function test_unlock_fail_invalidSignature() external 
-        startPrank(delegate) 
+        _startPrank(delegate) 
     {
         vm.expectRevert("INVALID_SIGNATURE");
         manager.unlock(
@@ -47,9 +47,9 @@ contract Unlock_Test is Base_Test {
                                   LOCK
     //////////////////////////////////////////////////////////////*/
     function test_lock() external
-        startPrank(delegate)
-        unlock()
-        lock()
+        _startPrank(delegate)
+        _unlock()
+        _lock()
     {
         assertFalse(manager.isUnlocked(sigOwner));
         assertFalse(manager.unlocked(sigOwner));
@@ -57,9 +57,9 @@ contract Unlock_Test is Base_Test {
     }
 
     function test_lock_fail_notDelegate() external
-        startPrank(delegate)
-        unlock()
-        stopPrank()
+        _startPrank(delegate)
+        _unlock()
+        _stopPrank()
     {
         vm.expectRevert("NOT_DELEGATE");
         manager.lock(sigOwner);

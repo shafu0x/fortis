@@ -7,9 +7,9 @@ import {Base_Test} from "./Base.t.sol";
 
 contract Mint_Test is Base_Test {
     function test_mintFUSD() public 
-        giveAssets(alice, 100e18) 
+        _giveAssets   (alice, 100e18) 
+        _setAssetPrice(4_000e8)
     {
-        setAssetPrice(4_000e8);
 
         vm.startPrank(alice);
 
@@ -25,12 +25,11 @@ contract Mint_Test is Base_Test {
     }
 
     function test_mintFUSD_unlocked() public 
-        giveAssets(delegate, 100e18)
+        _giveAssets   (delegate, 100e18)
+        _startPrank   (delegate)
+        _unlock       ()
+        _setAssetPrice(4_000e8)
     {
-        vm.startPrank(delegate);
-        manager.unlock(sigOwner, delegate, deadline, v, r, s);
-        setAssetPrice(4_000e8);
-
         manager.asset().approve(address(manager), 100e18);
         manager.deposit(100e18, sigOwner);
         manager.mintFUSD(250_000e18, sigOwner, address(this));

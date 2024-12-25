@@ -11,8 +11,8 @@ contract Deposit_Test is Base_Test {
     //////////////////////////////////////////////////////////////*/
     function test_deposit() 
         public 
-            giveAssets(alice, 10e18) 
-            startPrank(alice) 
+            _giveAssets(alice, 10e18) 
+            _startPrank(alice) 
     {
         assertEq(manager.deposited(alice), 0);
 
@@ -24,8 +24,8 @@ contract Deposit_Test is Base_Test {
 
     function test_deposit_fuzz(uint amount) 
         public 
-            giveAssets(alice, amount) 
-            startPrank(alice) 
+            _giveAssets(alice, amount) 
+            _startPrank(alice) 
     {
         vm.assume(amount != 0);
         assertEq(manager.deposited(alice), 0);
@@ -38,8 +38,8 @@ contract Deposit_Test is Base_Test {
 
     function test_deposit_forBob() 
         public 
-            giveAssets(alice, 10e18) 
-            startPrank(alice) 
+            _giveAssets(alice, 10e18) 
+            _startPrank(alice) 
     {
         assertEq(manager.deposited(bob), 0);
 
@@ -51,8 +51,8 @@ contract Deposit_Test is Base_Test {
 
     function test_deposit_fuzz_forBob(uint amount) 
         public 
-            giveAssets(alice, amount) 
-            startPrank(alice) 
+            _giveAssets(alice, amount) 
+            _startPrank(alice) 
     {
         vm.assume(amount != 0);
         assertEq(manager.deposited(bob), 0);
@@ -68,8 +68,8 @@ contract Deposit_Test is Base_Test {
     //////////////////////////////////////////////////////////////*/
     function test_mint() 
         public 
-            giveAssets(alice, 10e18) 
-            startPrank(alice) 
+            _giveAssets(alice, 10e18) 
+            _startPrank(alice) 
     {
         assertEq(manager.deposited(alice), 0);
 
@@ -81,8 +81,8 @@ contract Deposit_Test is Base_Test {
 
     function test_mint(uint amount) 
         public 
-            giveAssets(alice, amount) 
-            startPrank(alice) 
+            _giveAssets(alice, amount) 
+            _startPrank(alice) 
     {
         vm.assume(amount != 0);
         assertEq(manager.deposited(alice), 0);

@@ -101,7 +101,7 @@ contract Base_Test is Test, Parameters {
     /*//////////////////////////////////////////////////////////////
                                MODIFIERS
     //////////////////////////////////////////////////////////////*/
-    modifier unlock() {
+    modifier _unlock() {
         manager.unlock(
             sigOwner,
             delegate,
@@ -113,27 +113,27 @@ contract Base_Test is Test, Parameters {
         _;
     }
 
-    modifier lock() {
+    modifier _lock() {
         manager.lock(sigOwner);
         _;
     }
 
-    modifier giveAssets(address recipient, uint amount) {
+    modifier _giveAssets(address recipient, uint amount) {
         deal(address(manager.asset()), recipient, amount);
         _;
     }
 
-    modifier startPrank(address user) {
+    modifier _startPrank(address user) {
         vm.startPrank(user);
         _;
     }
 
-    modifier stopPrank() {
+    modifier _stopPrank() {
         vm.stopPrank();
         _;
     }
 
-    modifier depositTo(address owner, address recipient, uint amount) {
+    modifier _depositTo(address owner, address recipient, uint amount) {
         vm.startPrank(owner);
 
         manager.asset().approve(address(manager), 10e18);
@@ -141,5 +141,10 @@ contract Base_Test is Test, Parameters {
         _;
 
         vm.stopPrank();
+    }
+
+    modifier _setAssetPrice(int price) {
+        setAssetPrice(price);
+        _;
     }
 }
