@@ -23,4 +23,22 @@ contract Mint_Test is Base_Test {
 
         vm.stopPrank();
     }
+
+    function test_mintFUSD_unlocked() public 
+        giveAssets(delegate, 100e18)
+    {
+        vm.startPrank(delegate);
+        manager.unlock(sigOwner, delegate, deadline, v, r, s);
+        setAssetPrice(4_000e8);
+
+        manager.asset().approve(address(manager), 100e18);
+        manager.deposit(100e18, sigOwner);
+        manager.mintFUSD(250_000e18, sigOwner, address(this));
+
+        assertEq(manager.deposited(sigOwner),   100e18);
+        assertEq(manager.minted(sigOwner),      250_000e18);
+        assertEq(manager.collatRatio(sigOwner), 1.6e18);
+
+        vm.stopPrank();
+    }
 }
