@@ -29,4 +29,17 @@ contract Burn_Test is Base_Test {
 
         assertEq(manager.minted(alice), 0);
     }
+
+    function test_burnFUSD_unlocked() public 
+        _giveAssets   (delegate, 100e18) 
+        _setAssetPrice(4_000e8)
+        _startPrank   (delegate)
+        _unlock       ()
+        _depositTo    (delegate, sigOwner, 100e18)
+        _mintFUSD     (100e18, sigOwner, sigOwner)
+    {
+        manager.burnFUSD(100e18, sigOwner);
+
+        assertEq(manager.minted(sigOwner), 0);
+    }
 }
