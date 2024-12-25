@@ -176,13 +176,13 @@ contract Manager is ERC4626, Owned {
 
     function assetPrice() public view returns (uint) {
         (, int256 answer,, uint256 updatedAt,) = assetOracle.latestRoundData();
-        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("Stale data");
+        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("STALE_DATA");
         return answer.toUint256();
     }
 
     function wstEth2stEth() public view returns (uint) {
         (, int256 answer,, uint256 updatedAt,) = wstEth2stEthOracle.latestRoundData();
-        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("Stale data");
+        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("STALE_DATA");
         return answer.toUint256();
     }
 
