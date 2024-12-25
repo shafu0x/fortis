@@ -27,7 +27,7 @@ contract Manager is ERC4626, Owned {
     uint public constant STALE_DATA_TIMEOUT      = 24 hours;
 
     FUSD    public immutable fusd;
-    IWstETH public immutable wstETH;
+    ERC20   public immutable wstETH;
     IOracle public immutable assetOracle;
     IOracle public immutable wstEth2stEthOracle;
 
@@ -50,12 +50,12 @@ contract Manager is ERC4626, Owned {
 
     constructor(
         FUSD    _fusd,
-        IWstETH _wstETH,
+        ERC20   _wstETH,
         IOracle _assetOracle,
         IOracle _wstEth2stEthOracle,
         address _owner
     ) Owned(_owner) 
-      ERC4626(ERC20(address(_wstETH)), "Fortis wstETH", "fwstETH") {
+      ERC4626(_wstETH, "Fortis wstETH", "fwstETH") {
         fusd               = _fusd;
         wstETH             = _wstETH;
         assetOracle        = _assetOracle;
@@ -228,7 +228,7 @@ contract Manager is ERC4626, Owned {
     }
 
     function _harvestYield() internal {
-        uint currentRatio = wstETH.stEthPerToken(); 
+        uint currentRatio = wstEth2stEth();
 
         if (currentRatio <= lastStEthPerWstEth) { return; }
 

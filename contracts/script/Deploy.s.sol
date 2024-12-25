@@ -17,7 +17,7 @@ import {WstETH_Mock} from "../mocks/WstEth_Mock.sol";
 import {Oracle_Mock} from "../mocks/Oracle_Mock.sol";
 
 contract Deploy is Script, Parameters {
-    IWstETH public wsteth;
+    ERC20   public wsteth;
     IOracle public assetOracle;
     IOracle public wstEth2stEthOracle;
     
@@ -30,14 +30,14 @@ contract Deploy is Script, Parameters {
         uint chainId = block.chainid;
 
         if (chainId == 10) {
-            wsteth             = IWstETH(OPTIMISM_WSTETH);
+            wsteth             = ERC20(OPTIMISM_WSTETH);
             assetOracle        = IOracle(OPTIMISM_ORACLE_WSTETH_USD);
             wstEth2stEthOracle = IOracle(OPTIMISM_ORACLE_WSTETH_STETH);
 
             vm.createSelectFork(vm.envString("OPTIMISM_INFURA_URL"));
             vm.rollFork        (OPTIMISM_FORK_BLOCK_NUMBER);
         } else if (chainId == 31337) {
-            wsteth             = IWstETH(address(new WstETH_Mock()));
+            wsteth             = ERC20(address(new WstETH_Mock()));
             assetOracle        = new Oracle_Mock(1000e8);
             wstEth2stEthOracle = new Oracle_Mock(1000e8);
         } else {
