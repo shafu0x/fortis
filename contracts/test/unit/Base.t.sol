@@ -112,35 +112,37 @@ contract Base_Test is Test, Parameters {
         );
         _;
     }
-
     modifier _lock() {
         manager.lock(sigOwner);
         _;
     }
-
     modifier _giveAssets(address recipient, uint amount) {
         deal(address(manager.asset()), recipient, amount);
         _;
     }
-
     modifier _startPrank(address user) {
         vm.startPrank(user);
         _;
     }
-
     modifier _stopPrank() {
         vm.stopPrank();
         _;
     }
-
     modifier _depositTo(address owner, address recipient, uint amount) {
         manager.asset().approve(address(manager), amount);
         manager.deposit(amount, recipient);
         _;
     }
-
     modifier _setAssetPrice(int price) {
         setAssetPrice(price);
+        _;
+    }
+    modifier _setDeposited(address user, uint amount) {
+        setDeposited(user, amount);
+        _;
+    }
+    modifier _setMinted(address user, uint amount) {
+        setMinted(user, amount);
         _;
     }
 }
