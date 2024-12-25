@@ -75,11 +75,9 @@ contract Base_Test is Test, Parameters {
         r        = 0xd8082fd33957ca7a95edfc396bd7f60845feb0512be55eeabfb252bcc0990665;
         s        = 0x3911714f04783c5dd4f31ed7502e1e4a21c7b4152ab9a4c1415ae2b7a6768925;
     }
-
     function setAssetPrice(int price) public {
         Oracle_Mock(address(manager.assetOracle())).setPrice(price);
     }
-
     function setDeposited(address user, uint amount) public {
         stdstore
             .target(address(manager))
@@ -88,7 +86,6 @@ contract Base_Test is Test, Parameters {
             .depth(0)
             .checked_write(amount);
     }
-
     function setMinted(address user, uint amount) public {
         stdstore
             .target(address(manager))
@@ -143,6 +140,10 @@ contract Base_Test is Test, Parameters {
     }
     modifier _setMinted(address user, uint amount) {
         setMinted(user, amount);
+        _;
+    }
+    modifier _mintFUSD(uint amount, address recipient, address _delegate) {
+        manager.mintFUSD(amount, recipient, _delegate);
         _;
     }
 }
