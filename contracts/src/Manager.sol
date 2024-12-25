@@ -71,6 +71,9 @@ contract Manager is ERC4626, Owned {
         _;
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            ERC-4626
+    //////////////////////////////////////////////////////////////*/
     function deposit(uint256 assets, address receiver)
         public
         override
@@ -154,6 +157,9 @@ contract Manager is ERC4626, Owned {
         emit Withdraw(msg.sender, receiver, owner, assets, shares);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                                FUSD
+    //////////////////////////////////////////////////////////////*/
     function mintFUSD(uint amount, address owner, address receiver) external harvestBefore {
         require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
         minted[owner] += amount;
@@ -212,7 +218,7 @@ contract Manager is ERC4626, Owned {
         uint feeInWstEth      = wstEthToSeize.mulDivDown(LIQUIDATION_FEE_BPS, 10_000);
         uint netWstEthToSeize = wstEthToSeize - feeInWstEth;
 
-        minted   [owner] = debt - amount;
+        minted   [owner] = debt          - amount;
         deposited[owner] = wstEthBalance - wstEthToSeize;
 
         fusd.burn(msg.sender, amount);
@@ -268,7 +274,7 @@ contract Manager is ERC4626, Owned {
         bytes32 r,
         bytes32 s
     ) external {
-        require(delegate == msg.sender, "NOT_DELEGATE");
+        require(delegate == msg.sender,      "NOT_DELEGATE");
         require(block.timestamp <= deadline, "DEADLINE_EXPIRED");
 
         bytes32 structHash = keccak256(
