@@ -253,7 +253,8 @@ contract Manager is ERC4626, Owned {
             }
         }
 
-        lastStEthPerWstEth = currentRatio;
+        lastVaultBalanceWstETH = wstETH.balanceOf(address(this));
+        lastStEthPerWstEth     = currentRatio;
     }
 
     /*//////////////////////////////////////////////////////////////
