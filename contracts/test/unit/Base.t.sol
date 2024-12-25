@@ -3,12 +3,13 @@ pragma solidity =0.8.26;
 
 import "forge-std/src/Test.sol";
 
-import {Deploy}     from "../../script/Deploy.s.sol";
-import {Fortis}     from "../../src/Fortis.sol";
-import {FUSD}       from "../../src/FUSD.sol";
-import {Manager}    from "../../src/Manager.sol";
-import {Router}     from "../../src/Router.sol";
-import {Parameters} from "../../Parameters.sol";
+import {Deploy}      from "../../script/Deploy.s.sol";
+import {Fortis}      from "../../src/Fortis.sol";
+import {FUSD}        from "../../src/FUSD.sol";
+import {Manager}     from "../../src/Manager.sol";
+import {Router}      from "../../src/Router.sol";
+import {Oracle_Mock} from "../../mocks/Oracle_Mock.sol";
+import {Parameters}  from "../../Parameters.sol";
 
 contract Base_Test is Test, Parameters {
     using stdStorage for StdStorage;
@@ -75,6 +76,31 @@ contract Base_Test is Test, Parameters {
         s        = 0x3911714f04783c5dd4f31ed7502e1e4a21c7b4152ab9a4c1415ae2b7a6768925;
     }
 
+    function setAssetPrice(int price) public {
+        Oracle_Mock(address(manager.assetOracle())).setPrice(price);
+    }
+
+    function setDeposits(address user, uint amount) public {
+        stdstore
+            .target(address(manager))
+            .sig("deposits(address)")
+            .with_key(user)
+            .depth(0)
+            .checked_write(amount);
+    }
+
+    function setMinted(address user, uint amount) public {
+        stdstore
+            .target(address(manager))
+            .sig("minted(address)")
+            .with_key(user)
+            .depth(0)
+            .checked_write(amount);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                               MODIFIERS
+    //////////////////////////////////////////////////////////////*/
     modifier unlock() {
         manager.unlock(
             sigOwner,

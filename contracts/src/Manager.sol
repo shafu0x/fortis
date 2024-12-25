@@ -170,7 +170,7 @@ contract Manager is ERC4626, Owned {
     function collatRatio(address owner) public view returns (uint) {
         uint _minted = minted[owner];
         if (_minted == 0) return type(uint).max;
-        uint totalValue = deposits[owner] * assetPrice() * 1e8;
+        uint totalValue = deposits[owner] * assetPrice() / 1e8;
         return totalValue.divWadDown(_minted);
     }
 
