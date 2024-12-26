@@ -15,7 +15,7 @@ const wallet = new ethers.Wallet(privateKey);
 
 // Define the EIP-712 domain
 const domain = {
-  name: "Fortis wstETH",
+  name: "ManagerUnlock",
   version: "1",
   chainId: chainId,
   verifyingContract: managerAddress,
