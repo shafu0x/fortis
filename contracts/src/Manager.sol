@@ -36,6 +36,9 @@ contract Manager is ERC4626, Owned {
     uint public lastVaultBalanceWstETH;
     uint public lastStEthPerWstEth;
 
+    mapping(address => uint) public deposited;
+    mapping(address => uint) public minted;
+
     mapping(address => bool)    public unlocked;
     mapping(address => address) public delegates;
 
@@ -43,8 +46,9 @@ contract Manager is ERC4626, Owned {
         "Unlock(address owner,uint256 nonce,uint256 deadline,address delegate)"
     );
 
-    mapping(address => uint) public deposited;
-    mapping(address => uint) public minted;
+    mapping(address => uint256) public unlockNonces;
+    uint256 internal immutable UNLOCK_INITIAL_CHAIN_ID;
+    bytes32 internal immutable UNLOCK_INITIAL_DOMAIN_SEPARATOR;
 
     event Liquidate(address indexed owner, address indexed liquidator, uint amount, uint wstEthToSeize, uint fee);
 
@@ -64,6 +68,9 @@ contract Manager is ERC4626, Owned {
 
         lastVaultBalanceWstETH = wstETH.balanceOf(address(this));
         lastStEthPerWstEth     = wstEth2stEth();
+
+        UNLOCK_INITIAL_CHAIN_ID         = block.chainid;
+        UNLOCK_INITIAL_DOMAIN_SEPARATOR = _computeUnlockDomainSeparator();
     }
 
     modifier harvestBefore() {
@@ -288,7 +295,7 @@ contract Manager is ERC4626, Owned {
         );
 
         bytes32 digest = keccak256(
-            abi.encodePacked("\x19\x01", INITIAL_DOMAIN_SEPARATOR, structHash)
+            abi.encodePacked("\x19\x01", UNLOCK_DOMAIN_SEPARATOR(), structHash)
         );
 
         address signer = ecrecover(digest, v, r, s);
@@ -310,5 +317,24 @@ contract Manager is ERC4626, Owned {
 
     function isUnlocked(address owner) public view returns (bool) {
         return unlocked[owner] && delegates[owner] == msg.sender;
+    }
+
+    function _computeUnlockDomainSeparator() internal view returns (bytes32) {
+        return keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("ManagerUnlock")), 
+                keccak256("1"),
+                block.chainid,
+                address(this)
+            )
+        );
+    }
+
+    function UNLOCK_DOMAIN_SEPARATOR() public view returns (bytes32) {
+        if (block.chainid == UNLOCK_INITIAL_CHAIN_ID) {
+            return UNLOCK_INITIAL_DOMAIN_SEPARATOR;
+        }
+        return _computeUnlockDomainSeparator();
     }
 }

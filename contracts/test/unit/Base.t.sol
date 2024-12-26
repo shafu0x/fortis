@@ -70,10 +70,10 @@ contract Base_Test is Test, Parameters {
         // Signature is generated with a js script
         sigOwner = 0x9d8A62f656a8d1615C1294fd71e9CFb3E4855A4F;
         delegate = address(router);
-        deadline = 1735043499;
+        deadline = 1735217468;
         v        = 28;
-        r        = 0xd8082fd33957ca7a95edfc396bd7f60845feb0512be55eeabfb252bcc0990665;
-        s        = 0x3911714f04783c5dd4f31ed7502e1e4a21c7b4152ab9a4c1415ae2b7a6768925;
+        r        = 0x18daa4369080e85c34532c8e04eff774ff1ad78f1610802ca4277dfb0b281a01;
+        s        = 0x35285387d3e43ad6f695f7e8af7cea8cbf8af47fdb425a1f97ded272f0b214fc;
     }
     function setAssetPrice(int price) public {
         Oracle_Mock(address(manager.assetOracle())).setPrice(price);
