@@ -19,6 +19,9 @@ contract Manager is ERC4626, Owned {
     using SafeCast          for int256;
     using FixedPointMathLib for uint256;
 
+    /*//////////////////////////////////////////////////////////////
+                            CONSTANTS
+    //////////////////////////////////////////////////////////////*/
     uint public constant MIN_COLLAT_RATIO        = 1.3e18;   // 130%
     uint public constant PERFORMANCE_FEE_BPS     = 1;        // 0.01%
     uint public constant WITHDRAWAL_FEE_BPS      = 10;       // 0.1%
@@ -26,29 +29,32 @@ contract Manager is ERC4626, Owned {
     uint public constant LIQUIDATION_PENALTY_BPS = 1100;     // 110%
     uint public constant STALE_DATA_TIMEOUT      = 24 hours;
 
+    bytes32 public constant UNLOCK_TYPEHASH = keccak256(
+        "Unlock(address owner,uint256 nonce,uint256 deadline,address delegate)"
+    );
+    uint256 internal immutable UNLOCK_INITIAL_CHAIN_ID;
+    bytes32 internal immutable UNLOCK_INITIAL_DOMAIN_SEPARATOR;
+
+    /*//////////////////////////////////////////////////////////////
+                            EXTERNAL CONTRACTS
+    //////////////////////////////////////////////////////////////*/
     FUSD    public immutable fusd;
     ERC20   public immutable wstETH;
     IOracle public immutable assetOracle;
     IOracle public immutable wstEth2stEthOracle;
 
+    /*//////////////////////////////////////////////////////////////
+                            STORAGE
+    //////////////////////////////////////////////////////////////*/
     address public feeReceiver;
+    uint    public lastVaultBalanceWstETH;
+    uint    public lastStEthPerWstEth;
 
-    uint public lastVaultBalanceWstETH;
-    uint public lastStEthPerWstEth;
-
-    mapping(address => uint) public deposited;
-    mapping(address => uint) public minted;
-
+    mapping(address => uint)    public deposited;
+    mapping(address => uint)    public minted;
     mapping(address => bool)    public unlocked;
     mapping(address => address) public delegates;
-
-    bytes32 public constant UNLOCK_TYPEHASH = keccak256(
-        "Unlock(address owner,uint256 nonce,uint256 deadline,address delegate)"
-    );
-
-    mapping(address => uint256) public unlockNonces;
-    uint256 internal immutable UNLOCK_INITIAL_CHAIN_ID;
-    bytes32 internal immutable UNLOCK_INITIAL_DOMAIN_SEPARATOR;
+    mapping(address => uint)    public unlockNonces;
 
     event Liquidate(address indexed owner, address indexed liquidator, uint amount, uint wstEthToSeize, uint fee);
 
@@ -81,21 +87,21 @@ contract Manager is ERC4626, Owned {
     /*//////////////////////////////////////////////////////////////
                             ERC-4626
     //////////////////////////////////////////////////////////////*/
-    function deposit(uint256 assets, address receiver)
+    function deposit(uint assets, address receiver)
         public
         override
         harvestBefore
-        returns (uint256 shares)
+        returns (uint shares)
     {
         require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
         _deposit(assets, shares, receiver);
     }
 
-    function mint(uint256 shares, address receiver)
+    function mint(uint shares, address receiver)
         public
         override
         harvestBefore
-        returns (uint256 assets)
+        returns (uint assets)
     {
         assets = previewMint(shares);
         _deposit(assets, shares, receiver);
@@ -109,29 +115,29 @@ contract Manager is ERC4626, Owned {
         emit Deposit(msg.sender, receiver, assets, shares);
     }
 
-    function withdraw(uint256 assets, address receiver, address owner)
+    function withdraw(uint assets, address receiver, address owner)
         public
         override
         harvestBefore
-        returns (uint256 shares)
+        returns (uint shares)
     {
         shares = previewWithdraw(assets);
         if (msg.sender != owner) {
-            uint256 allowed = allowance[owner][msg.sender];
-            if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
+            uint allowed = allowance[owner][msg.sender];
+            if (allowed != type(uint).max) allowance[owner][msg.sender] = allowed - shares;
         }
         _withdraw(assets, shares, owner, receiver);
     }
 
-    function redeem(uint256 shares, address receiver, address owner)
+    function redeem(uint shares, address receiver, address owner)
         public
         override
         harvestBefore
-        returns (uint256 assets)
+        returns (uint assets)
     {
         if (msg.sender != owner) {
-            uint256 allowed = allowance[owner][msg.sender]; 
-            if (allowed != type(uint256).max) allowance[owner][msg.sender] = allowed - shares;
+            uint allowed = allowance[owner][msg.sender]; 
+            if (allowed != type(uint).max) allowance[owner][msg.sender] = allowed - shares;
         }
         require((assets = previewRedeem(shares)) != 0, "ZERO_ASSETS");
         _withdraw(assets, shares, owner, receiver);
@@ -188,13 +194,13 @@ contract Manager is ERC4626, Owned {
     }
 
     function assetPrice() public view returns (uint) {
-        (, int256 answer,, uint256 updatedAt,) = assetOracle.latestRoundData();
+        (, int answer,, uint updatedAt,) = assetOracle.latestRoundData();
         if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("STALE_DATA");
         return answer.toUint256();
     }
 
     function wstEth2stEth() public view returns (uint) {
-        (, int256 answer,, uint256 updatedAt,) = wstEth2stEthOracle.latestRoundData();
+        (, int answer,, uint updatedAt,) = wstEth2stEthOracle.latestRoundData();
         if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("STALE_DATA");
         return answer.toUint256();
     }
