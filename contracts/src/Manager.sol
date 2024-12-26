@@ -9,12 +9,13 @@ import {SafeCast}          from "@openzeppelin/utils/math/SafeCast.sol";
 import {FixedPointMathLib} from "solmate/src/utils/FixedPointMathLib.sol";
 import {ERC20}             from "solmate/src/tokens/ERC20.sol";
 import {Owned}             from "solmate/src/auth/Owned.sol";
+import {ReentrancyGuard}   from "solmate/src/utils/ReentrancyGuard.sol";
 
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IWstETH} from "../interfaces/IWstETH.sol";
 import {FUSD}    from "./FUSD.sol";
 
-contract Manager is ERC4626, Owned {
+contract Manager is ERC4626, Owned, ReentrancyGuard {
     using SafeTransferLib   for ERC20;
     using SafeCast          for int256;
     using FixedPointMathLib for uint256;
@@ -91,6 +92,7 @@ contract Manager is ERC4626, Owned {
         public
         override
         harvestBefore
+        nonReentrant
         returns (uint shares)
     {
         require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
@@ -101,6 +103,7 @@ contract Manager is ERC4626, Owned {
         public
         override
         harvestBefore
+        nonReentrant
         returns (uint assets)
     {
         assets = previewMint(shares);
@@ -119,6 +122,7 @@ contract Manager is ERC4626, Owned {
         public
         override
         harvestBefore
+        nonReentrant
         returns (uint shares)
     {
         shares = previewWithdraw(assets);
@@ -133,6 +137,7 @@ contract Manager is ERC4626, Owned {
         public
         override
         harvestBefore
+        nonReentrant
         returns (uint assets)
     {
         if (msg.sender != owner) {
@@ -143,13 +148,20 @@ contract Manager is ERC4626, Owned {
         _withdraw(assets, shares, owner, receiver);
     }
 
-    function withdrawFrom(uint assets, address receiver, address owner) external {
+    function withdrawFrom(uint assets, address receiver, address owner) 
+        external         
+        harvestBefore
+        nonReentrant 
+    {
         require(isUnlocked(owner), "NOT_UNLOCKED");
         uint shares = previewWithdraw(assets);
         _withdraw(assets, shares, owner, receiver);
     }
 
-    function redeemFrom(uint shares, address receiver, address owner) external {
+    function redeemFrom(uint shares, address receiver, address owner) 
+        harvestBefore
+        nonReentrant 
+        external {
         require(isUnlocked(owner), "NOT_UNLOCKED");
         uint assets = previewRedeem(shares);
         _withdraw(assets, shares, owner, receiver);
@@ -173,14 +185,22 @@ contract Manager is ERC4626, Owned {
     /*//////////////////////////////////////////////////////////////
                                 FUSD
     //////////////////////////////////////////////////////////////*/
-    function mintFUSD(uint amount, address owner, address receiver) external harvestBefore {
+    function mintFUSD(uint amount, address owner, address receiver) 
+        external 
+        nonReentrant
+        harvestBefore 
+    {
         require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
         minted[owner] += amount;
         if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
         fusd.mint(receiver, amount);
     }
 
-    function burnFUSD(uint amount, address owner) external harvestBefore {
+    function burnFUSD(uint amount, address owner) 
+        external 
+        nonReentrant
+        harvestBefore 
+    {
         require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
         fusd.burn(owner, amount);
         minted[owner] -= amount;
@@ -209,7 +229,10 @@ contract Manager is ERC4626, Owned {
         return wstETH.balanceOf(address(this));
     }
 
-    function liquidate(address owner, uint amount, address receiver) external {
+    function liquidate(address owner, uint amount, address receiver) 
+        external
+        nonReentrant
+    {
         require(collatRatio(owner) < MIN_COLLAT_RATIO, "NOT_UNDERCOLLATERALIZED");
 
         uint debt = minted[owner];
