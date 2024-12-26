@@ -294,7 +294,7 @@ contract Manager is ERC4626, Owned {
             abi.encode(
                 UNLOCK_TYPEHASH,
                 owner,
-                nonces[owner],  // Prevent replay attacks
+                unlockNonces[owner],  // Prevent replay attacks
                 deadline,
                 delegate
             )
@@ -308,7 +308,7 @@ contract Manager is ERC4626, Owned {
 
         require(signer == owner, "INVALID_SIGNATURE");
 
-        nonces[owner]++;
+        unlockNonces[owner]++;
 
         unlocked [owner] = true;
         delegates[owner] = delegate;
