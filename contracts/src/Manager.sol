@@ -338,10 +338,15 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
     }
 
     function lock(address owner) external {
-        require(delegates[owner] == msg.sender, "NOT_DELEGATE");
-        require(unlocked [owner],               "NOT_UNLOCKED");
-        unlocked [owner] = false;
-        delegates[owner] = address(0);
+        if (msg.sender == owner) {
+            unlocked [owner] = false;
+            delegates[owner] = address(0);
+        } else if (delegates[owner] == msg.sender) {
+            unlocked [owner] = false;
+            delegates[owner] = address(0);
+        } else {
+            revert("NOT_OWNER_OR_DELEGATE");
+        }
     }
 
     function isUnlocked(address owner) public view returns (bool) {

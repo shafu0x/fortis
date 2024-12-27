@@ -46,7 +46,7 @@ contract Unlock_Test is Base_Test {
     /*//////////////////////////////////////////////////////////////
                                   LOCK
     //////////////////////////////////////////////////////////////*/
-    function test_lock() external
+    function test_lock_asDelegate() external
         _startPrank(delegate)
         _unlock()
         _lock()
@@ -56,12 +56,23 @@ contract Unlock_Test is Base_Test {
         assertTrue (manager.delegates(sigOwner) == address(0));
     }
 
-    function test_lock_fail_notDelegate() external
+    function test_lock_asOwner() external
+        _startPrank(delegate)
+        _unlock()
+        _startPrank(sigOwner)
+        _lock()
+    {
+        assertFalse(manager.isUnlocked(sigOwner));
+        assertFalse(manager.unlocked(sigOwner));
+        assertTrue (manager.delegates(sigOwner) == address(0));
+    }
+
+    function test_lock_fail_notDelegateOrOwner() external
         _startPrank(delegate)
         _unlock()
         _stopPrank()
     {
-        vm.expectRevert("NOT_DELEGATE");
+        vm.expectRevert("NOT_OWNER_OR_DELEGATE");
         manager.lock(sigOwner);
     }
 }
