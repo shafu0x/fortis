@@ -65,7 +65,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         IOracle _assetOracle,
         IOracle _wstEth2stEthOracle,
         address _owner
-    ) Owned(_owner) 
+    ) Owned  (_owner) 
       ERC4626(_wstETH, "Fortis wstETH", "fwstETH") {
         fusd               = _fusd;
         wstETH             = _wstETH;
@@ -80,8 +80,22 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         UNLOCK_INITIAL_DOMAIN_SEPARATOR = _computeUnlockDomainSeparator();
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            MODIFIERS
+    //////////////////////////////////////////////////////////////*/
     modifier harvestBefore() {
         _harvestYield();
+        _;
+    }
+    modifier onlyDelegate(address owner) {
+        require(unlocked[owner] && delegates[owner] == msg.sender, "NOT_DELEGATE");
+        _;
+    }
+    modifier onlyOwnerOrDelegate(address owner) {
+        require(
+            msg.sender == owner || (unlocked[owner] && delegates[owner] == msg.sender),
+            "NOT_OWNER_OR_DELEGATE"
+        );
         _;
     }
 
@@ -152,17 +166,18 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         external         
         harvestBefore
         nonReentrant 
+        onlyDelegate(owner)
     {
-        require(isUnlocked(owner), "NOT_UNLOCKED");
         uint shares = previewWithdraw(assets);
         _withdraw(assets, shares, owner, receiver);
     }
 
     function redeemFrom(uint shares, address receiver, address owner) 
+        external 
         harvestBefore
         nonReentrant 
-        external {
-        require(isUnlocked(owner), "NOT_UNLOCKED");
+        onlyDelegate(owner)
+    {
         uint assets = previewRedeem(shares);
         _withdraw(assets, shares, owner, receiver);
     }
@@ -189,8 +204,8 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         external 
         nonReentrant
         harvestBefore 
+        onlyOwnerOrDelegate(owner)
     {
-        require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
         minted[owner] += amount;
         if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
         fusd.mint(receiver, amount);
@@ -200,8 +215,9 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         external 
         nonReentrant
         harvestBefore 
+        onlyOwnerOrDelegate(owner)
     {
-        require(isUnlocked(owner) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
+        require((unlocked[owner] && delegates[owner] == msg.sender) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
         fusd.burn(owner, amount);
         minted[owner] -= amount;
     }
@@ -265,10 +281,6 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         emit Liquidate(owner, msg.sender, amount, wstEthToSeize, feeInWstEth);
     }
 
-    function setFeeReceiver(address _feeReceiver) external onlyOwner {
-        feeReceiver = _feeReceiver;
-    }
-
     function _harvestYield() internal {
         uint currentRatio = wstEth2stEth();
 
@@ -297,6 +309,10 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
 
         lastVaultBalanceWstETH = wstETH.balanceOf(address(this));
         lastStEthPerWstEth     = currentRatio;
+    }
+
+    function setFeeReceiver(address _feeReceiver) external onlyOwner {
+        feeReceiver = _feeReceiver;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -347,10 +363,6 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         } else {
             revert("NOT_OWNER_OR_DELEGATE");
         }
-    }
-
-    function isUnlocked(address owner) public view returns (bool) {
-        return unlocked[owner] && delegates[owner] == msg.sender;
     }
 
     function _computeUnlockDomainSeparator() internal view returns (bytes32) {

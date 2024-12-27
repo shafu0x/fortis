@@ -13,7 +13,7 @@ contract Unlock_Test is Base_Test {
         _startPrank(delegate)
         _unlock()
     {
-        assertTrue(manager.isUnlocked(sigOwner));
+        assertTrue(manager.unlocked(sigOwner));
         assertTrue(manager.delegates(sigOwner) == delegate);
     }
 
@@ -51,7 +51,6 @@ contract Unlock_Test is Base_Test {
         _unlock()
         _lock()
     {
-        assertFalse(manager.isUnlocked(sigOwner));
         assertFalse(manager.unlocked(sigOwner));
         assertTrue (manager.delegates(sigOwner) == address(0));
     }
@@ -62,7 +61,6 @@ contract Unlock_Test is Base_Test {
         _startPrank(sigOwner)
         _lock()
     {
-        assertFalse(manager.isUnlocked(sigOwner));
         assertFalse(manager.unlocked(sigOwner));
         assertTrue (manager.delegates(sigOwner) == address(0));
     }
