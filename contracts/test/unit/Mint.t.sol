@@ -6,10 +6,10 @@ import "forge-std/src/Test.sol";
 import {Base_Test} from "./Base.t.sol";
 
 contract Mint_Test is Base_Test {
-    function test_mintFUSD() public 
+    function test_mintFUSD_calledByOwner() public 
+        _startPrank   (alice)
         _giveAssets   (alice, 100e18) 
         _setAssetPrice(4_000e8)
-        _startPrank   (alice)
         _depositTo    (100e18, alice, alice)
     {
         manager.mintFUSD(250_000e18, alice, alice);
@@ -18,6 +18,27 @@ contract Mint_Test is Base_Test {
         assertEq(manager.deposited(alice),   100e18);
         assertEq(manager.minted(alice),      250_000e18);
         assertEq(manager.collatRatio(alice), 1.6e18);
+    }
+
+    function test_mintFUSD_calledByDelegate() public 
+        _startPrank   (delegate)
+        _giveAssets   (delegate, 100e18) 
+        _setAssetPrice(4_000e8)
+        _unlock       ()
+        _depositTo    (100e18, sigOwner, sigOwner)
+    {
+        manager.mintFUSD(250_000e18, sigOwner, sigOwner);
+    }
+
+    function test_mintFUSD_fail_notOwnerOrDelegate() public 
+        _giveAssets   (alice, 100e18) 
+        _setAssetPrice(4_000e8)
+        _startPrank   (alice)
+        _depositTo    (100e18, alice, alice)
+        _stopPrank    ()
+    {
+        vm.expectRevert("NOT_OWNER_OR_DELEGATE");
+        manager.mintFUSD(250_000e18, alice, alice);
     }
 
     function test_mintFUSD_unlocked() public 
