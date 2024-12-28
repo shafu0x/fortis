@@ -75,6 +75,7 @@ contract Base_Test is Test, Parameters {
         r        = 0x18daa4369080e85c34532c8e04eff774ff1ad78f1610802ca4277dfb0b281a01;
         s        = 0x35285387d3e43ad6f695f7e8af7cea8cbf8af47fdb425a1f97ded272f0b214fc;
     }
+
     function setAssetPrice(int price) public {
         Oracle_Mock(address(manager.assetOracle())).setPrice(price);
     }
@@ -93,6 +94,10 @@ contract Base_Test is Test, Parameters {
             .with_key(user)
             .depth(0)
             .checked_write(amount);
+    }
+
+    function expectRevert(string memory message) public {
+        vm.expectRevert(bytes(message));
     }
 
     /*//////////////////////////////////////////////////////////////

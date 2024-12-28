@@ -2,6 +2,7 @@
 pragma solidity =0.8.26;
 
 import "forge-std/src/Test.sol";
+import {Errors} from "../../src/libraries/ErrorsLib.sol";
 
 import {Base_Test} from "./Base.t.sol";
 
@@ -37,7 +38,7 @@ contract Mint_Test is Base_Test {
         _depositTo    (100e18, alice, alice)
         _stopPrank    ()
     {
-        vm.expectRevert("NOT_OWNER_OR_DELEGATE");
+        expectRevert(Errors.NOT_OWNER_OR_DELEGATE);
         manager.mintFUSD(250_000e18, alice, alice);
     }
 

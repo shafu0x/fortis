@@ -13,6 +13,7 @@ import {ReentrancyGuard}   from "solmate/src/utils/ReentrancyGuard.sol";
 
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IWstETH} from "../interfaces/IWstETH.sol";
+import {Errors}  from "./libraries/ErrorsLib.sol";
 import {FUSD}    from "./FUSD.sol";
 
 contract Manager is ERC4626, Owned, ReentrancyGuard {
@@ -88,13 +89,13 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         _;
     }
     modifier onlyDelegate(address owner) {
-        require(unlocked[owner] && delegates[owner] == msg.sender, "NOT_DELEGATE");
+        require(unlocked[owner] && delegates[owner] == msg.sender, Errors.NOT_DELEGATE);
         _;
     }
     modifier onlyOwnerOrDelegate(address owner) {
         require(
             msg.sender == owner || (unlocked[owner] && delegates[owner] == msg.sender),
-            "NOT_OWNER_OR_DELEGATE"
+            Errors.NOT_OWNER_OR_DELEGATE
         );
         _;
     }
@@ -109,7 +110,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         nonReentrant
         returns (uint shares)
     {
-        require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
+        require((shares = previewDeposit(assets)) != 0, Errors.ZERO_SHARES);
         _deposit(assets, shares, receiver);
     }
 
@@ -158,7 +159,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
             uint allowed = allowance[owner][msg.sender]; 
             if (allowed != type(uint).max) allowance[owner][msg.sender] = allowed - shares;
         }
-        require((assets = previewRedeem(shares)) != 0, "ZERO_ASSETS");
+        require((assets = previewRedeem(shares)) != 0, Errors.ZERO_ASSETS);
         _withdraw(assets, shares, owner, receiver);
     }
 
@@ -187,7 +188,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         uint netAssets    = assets - fee;
         deposited[owner] -= assets;
 
-        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
+        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert(Errors.INSUFFICIENT_COLLATERAL);
 
         _burn(owner, shares);
 
@@ -207,7 +208,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         onlyOwnerOrDelegate(owner)
     {
         minted[owner] += amount;
-        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert("INSUFFICIENT_COLLATERAL");
+        if (collatRatio(owner) < MIN_COLLAT_RATIO) revert(Errors.INSUFFICIENT_COLLATERAL);
         fusd.mint(receiver, amount);
     }
 
@@ -217,7 +218,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         harvestBefore 
         onlyOwnerOrDelegate(owner)
     {
-        require((unlocked[owner] && delegates[owner] == msg.sender) || msg.sender == owner, "NOT_UNLOCKED_OR_OWNER");
+        require((unlocked[owner] && delegates[owner] == msg.sender) || msg.sender == owner, Errors.NOT_OWNER_OR_DELEGATE);
         fusd.burn(owner, amount);
         minted[owner] -= amount;
     }
@@ -231,13 +232,13 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
 
     function assetPrice() public view returns (uint) {
         (, int answer,, uint updatedAt,) = assetOracle.latestRoundData();
-        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("STALE_DATA");
+        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert(Errors.STALE_DATA);
         return answer.toUint256();
     }
 
     function wstEth2stEth() public view returns (uint) {
         (, int answer,, uint updatedAt,) = wstEth2stEthOracle.latestRoundData();
-        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert("STALE_DATA");
+        if (block.timestamp > updatedAt + STALE_DATA_TIMEOUT) revert(Errors.STALE_DATA);
         return answer.toUint256();
     }
 
@@ -249,13 +250,13 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         external
         nonReentrant
     {
-        require(collatRatio(owner) < MIN_COLLAT_RATIO, "NOT_UNDERCOLLATERALIZED");
+        require(collatRatio(owner) < MIN_COLLAT_RATIO, Errors.NOT_UNDERCOLLATERIZED);
 
         uint debt = minted[owner];
         if (amount > debt) {
             amount = debt; 
         }
-        require(amount > 0, "NO_DEBT_TO_REPAY");
+        require(amount > 0, Errors.NO_DEBT_TO_REPAY);
 
         uint price = assetPrice(); 
         uint wstEthToSeize = amount
@@ -326,8 +327,8 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
         bytes32 r,
         bytes32 s
     ) external {
-        require(delegate == msg.sender,      "NOT_DELEGATE");
-        require(block.timestamp <= deadline, "DEADLINE_EXPIRED");
+        require(delegate == msg.sender,      Errors.NOT_DELEGATE);
+        require(block.timestamp <= deadline, Errors.DEADLINE_EXPIRED);
 
         bytes32 structHash = keccak256(
             abi.encode(
@@ -345,7 +346,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
 
         address signer = ecrecover(digest, v, r, s);
 
-        require(signer == owner, "INVALID_SIGNATURE");
+        require(signer == owner, Errors.INVALID_SIGNATRURE);
 
         unlockNonces[owner]++;
 
@@ -361,7 +362,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
             unlocked [owner] = false;
             delegates[owner] = address(0);
         } else {
-            revert("NOT_OWNER_OR_DELEGATE");
+            revert(Errors.NOT_OWNER_OR_DELEGATE);
         }
     }
 

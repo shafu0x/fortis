@@ -2,6 +2,7 @@
 pragma solidity =0.8.26;
 
 import "forge-std/src/Test.sol";
+import {Errors} from "../../src/libraries/ErrorsLib.sol";
 
 import {Base_Test} from "./Base.t.sol";
 
@@ -18,7 +19,7 @@ contract Unlock_Test is Base_Test {
     }
 
      function test_unlock_fail_delegateNotSender() external {
-        vm.expectRevert("NOT_DELEGATE");
+        expectRevert(Errors.NOT_DELEGATE);
         manager.unlock(
             sigOwner,
             delegate,
@@ -32,7 +33,7 @@ contract Unlock_Test is Base_Test {
      function test_unlock_fail_invalidSignature() external 
         _startPrank(delegate) 
     {
-        vm.expectRevert("INVALID_SIGNATURE");
+        expectRevert(Errors.INVALID_SIGNATRURE);
         manager.unlock(
             sigOwner,
             delegate,
@@ -70,7 +71,7 @@ contract Unlock_Test is Base_Test {
         _unlock()
         _stopPrank()
     {
-        vm.expectRevert("NOT_OWNER_OR_DELEGATE");
+        expectRevert(Errors.NOT_OWNER_OR_DELEGATE);
         manager.lock(sigOwner);
     }
 }
