@@ -13,7 +13,7 @@ import {ReentrancyGuard}   from "solmate/src/utils/ReentrancyGuard.sol";
 
 import {IOracle} from "../interfaces/IOracle.sol";
 import {IWstETH} from "../interfaces/IWstETH.sol";
-import {Errors}  from "./libraries/ErrorsLib.sol";
+import {Errors}  from "../libraries/ErrorsLib.sol";
 import {FUSD}    from "./FUSD.sol";
 
 contract Manager is ERC4626, Owned, ReentrancyGuard {

@@ -2,7 +2,7 @@
 pragma solidity =0.8.26;
 
 import "forge-std/src/Test.sol";
-import {Errors} from "../../src/libraries/ErrorsLib.sol";
+import {Errors} from "../../libraries/ErrorsLib.sol";
 
 import {Base_Test} from "./Base.t.sol";
 
