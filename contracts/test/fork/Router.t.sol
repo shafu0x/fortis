@@ -12,17 +12,19 @@ contract Router_Test is Test {
         Swap swap = new Swap();
         console.log(block.number);
         address shafu = 0x414b60745072088d013721b4a28a0559b1A9d213;
-        ERC20 stETH = ERC20(0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84);
-        uint balanceShafu = stETH.balanceOf(shafu);
+        ERC20 usdc = ERC20(0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85);
+        uint balanceShafu = usdc.balanceOf(shafu);
+        console.log(balanceShafu);
         vm.startPrank(shafu);
-        stETH.transfer(address(this), balanceShafu);
+        usdc.transfer(address(this), balanceShafu);
         vm.stopPrank();
-        stETH.approve(address(swap), balanceShafu);
+        usdc.approve(address(swap), balanceShafu);
         swap.swap(
-            address(stETH), // stETH
-            0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48, // USDC
-            balanceShafu,
-            10,
+            address(usdc), 
+            0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb, // stETH
+            100,
+            100,
+            address(0),
             ""
         );
     }

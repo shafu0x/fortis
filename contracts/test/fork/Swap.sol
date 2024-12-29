@@ -8,36 +8,64 @@ import {ERC20} from "solmate/src/tokens/ERC20.sol";
 import {Manager} from "../../src/Manager.sol";
 import {IOracle} from "../../interfaces/IOracle.sol";
 
-interface I1InchAggregator {
+interface IAggregationRouterV6 {
+    struct SwapDescription {
+        address srcToken;
+        address dstToken;
+        address payable receiver;
+        uint256 amount;
+        uint256 minReturnAmount;
+        uint256 flags;
+        bytes permit;
+    }
+
     function swap(
-        address fromToken,
-        address toToken,
-        uint256 amount,
-        uint256 minReturn,
-        address payable referrer,
+        IAggregationExecutor caller,
+        SwapDescription calldata desc,
         bytes calldata data
-    ) external payable returns (uint256 returnAmount);
+    )
+        external
+        payable
+        returns (uint256 returnAmount, uint256 gasLeft);
 }
+
+interface IAggregationExecutor {}
 
 contract Swap {
     function swap(
-        address fromToken,
-        address toToken,
+        address srcToken,
+        address dstToken,
         uint256 amount,
-        uint256 minReturn,
-        bytes calldata swapData
-    ) public {
-        console.log(address(this));
-        address AGGREGATOR = 0x1111111254EEB25477B68fb85Ed929f73A960582;
-        ERC20(fromToken).transferFrom(msg.sender, address(this), amount);
-        ERC20(fromToken).approve(AGGREGATOR, amount);
-        I1InchAggregator(AGGREGATOR).swap(
-            fromToken,
-            toToken,
-            amount,
-            minReturn,
-            payable(msg.sender),
-            swapData
+        uint256 minReturnAmount,
+        address executor,
+        bytes calldata data
+    ) external payable {
+        // 1inch Aggregation Router address (currently 0x11111112542D85B3EF69AE05771c2dCCff4fAa26)
+        address AGGREGATION_ROUTER = 0x11111112542D85B3EF69AE05771c2dCCff4fAa26;
+
+        // Approve the 1inch router to spend the source token
+        // Only needed if srcToken is an actual ERC20 (i.e., not ETH)
+        ERC20(srcToken).approve(AGGREGATION_ROUTER, amount);
+
+        // Prepare the swap description
+        IAggregationRouterV6.SwapDescription memory desc = IAggregationRouterV6.SwapDescription({
+            srcToken: srcToken,
+            dstToken: dstToken,
+            receiver: payable(msg.sender), // who should get the swapped tokens
+            amount: amount,
+            minReturnAmount: minReturnAmount,
+            flags: 0,         // set any flags if needed (often 0)
+            permit: ""        // pass in any permit data if needed, otherwise ""
+        });
+
+        // Call the 1inch router to perform the swap
+        (uint256 returnAmount, ) = IAggregationRouterV6(AGGREGATION_ROUTER).swap(
+            IAggregationExecutor(executor),
+            desc,
+            data
         );
+
+        // Optional: require that we received at least the minimum
+        require(returnAmount >= minReturnAmount, "Insufficient output amount");
     }
 }
