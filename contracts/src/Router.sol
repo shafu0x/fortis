@@ -17,6 +17,17 @@ struct LockParams {
     bytes32 s;
 }
 
+interface I1InchAggregator {
+    function swap(
+        address fromToken,
+        address toToken,
+        uint256 amount,
+        uint256 minReturn,
+        address payable referrer,
+        bytes calldata data
+    ) external payable returns (uint256 returnAmount);
+}
+
 contract Router {
     Manager public manager;
     IOracle public oracle;
@@ -41,6 +52,26 @@ contract Router {
         manager = _manager;
         oracle  = manager.assetOracle();
         asset   = manager.asset();
+    }
+
+    function swap(
+        address fromToken,
+        address toToken,
+        uint256 amount,
+        uint256 minReturn,
+        bytes calldata swapData
+    ) public {
+        address AGGREGATOR = 0x1111111254EEB25477B68fb85Ed929f73A960582;
+        ERC20(fromToken).transferFrom(msg.sender, address(this), amount);
+        ERC20(fromToken).approve(AGGREGATOR, amount);
+        I1InchAggregator(AGGREGATOR).swap(
+            fromToken,
+            toToken,
+            amount,
+            minReturn,
+            payable(msg.sender),
+            swapData
+        );
     }
 
     function depositAndMint(
