@@ -29,13 +29,15 @@ contract Deploy is Script, Parameters {
     function setUp() public {
         uint chainId = block.chainid;
 
+        console.log("Chain ID: %d", chainId);
+
         if (chainId == 10) {
             wsteth             = ERC20(OPTIMISM_WSTETH);
             assetOracle        = IOracle(OPTIMISM_ORACLE_WSTETH_USD);
             wstEth2stEthOracle = IOracle(OPTIMISM_ORACLE_WSTETH_STETH);
 
-            vm.createSelectFork(vm.envString("OPTIMISM_INFURA_URL"));
-            vm.rollFork        (OPTIMISM_FORK_BLOCK_NUMBER);
+            // vm.createSelectFork(vm.envString("OPTIMISM_INFURA_URL"));
+            // vm.rollFork        (OPTIMISM_FORK_BLOCK_NUMBER);
         } else if (chainId == 31337) {
             wsteth             = ERC20(address(new WstETH_Mock()));
             assetOracle        = new Oracle_Mock(1000e8);
