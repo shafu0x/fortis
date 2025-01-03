@@ -28,7 +28,7 @@ contract Manager is ERC4626, Owned, ReentrancyGuard {
     uint public constant PERFORMANCE_FEE_BPS     = 1;        // 0.01%
     uint public constant WITHDRAWAL_FEE_BPS      = 10;       // 0.1%
     uint public constant LIQUIDATION_FEE_BPS     = 100;      // 1%
-    uint public constant LIQUIDATION_PENALTY_BPS = 1100;     // 110%
+    uint public constant LIQUIDATION_PENALTY_BPS = 1100;     // 11%
     uint public constant STALE_DATA_TIMEOUT      = 24 hours;
 
     bytes32 public constant UNLOCK_TYPEHASH = keccak256(
