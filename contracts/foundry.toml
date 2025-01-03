@@ -5,6 +5,7 @@ src = "src"
 test = "test"
 libs = ["dependencies"]
 chain_id = 31337
+evm_version = "cancun"
 
 [profile.anvil]
 chain_id = 31337
